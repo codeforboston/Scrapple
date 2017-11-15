@@ -36,3 +36,14 @@ def about():
         year=datetime.now().year,
         message='Your application description page.'
     )
+
+@app.route("/config")
+def Config():
+    """Something"""
+    return render_template(
+        'Config.html',
+        title='Config',
+        year=datetime.now().year,
+        message='Your application description page.',
+        modules="{one, two, three}"
+    )
