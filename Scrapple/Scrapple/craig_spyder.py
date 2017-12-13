@@ -1,12 +1,10 @@
 import scrapy
 from time import sleep
+from . import pipeline
 
 LISTINGS_PER_PAGE = 10
 PAGES_TO_CRAWL = 1
 CITY_PREFIX = 'boston'
-ITEM_PIPELINES = {
-	'myproject.pipelines.Pipeline': 1,
-}
 
 
 class CraigslistItem(scrapy.Item):
@@ -28,7 +26,7 @@ class MySpider(scrapy.Spider):
     allowed_domains = ["craigslist.org"]
     base_url = "http://{city}.craigslist.org/search/see/aap?".format(city=CITY_PREFIX)
     start_urls = []
-    custom_settings = { 'ITEM_PIPELINES': { 'Pipeline.Pipeline' : 300 }}
+    custom_settings = { 'ITEM_PIPELINES': { 'Scrapple.pipeline.Pipeline' : 300 }}
 
 
     for i in range(PAGES_TO_CRAWL):

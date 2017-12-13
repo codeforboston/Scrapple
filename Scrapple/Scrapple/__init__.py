@@ -1,4 +1,4 @@
-from . import DataManager 
+from . import data_manager 
 
 class Scrapple:
     __scrapers = set()
@@ -8,16 +8,16 @@ class Scrapple:
 
     def start_scraper(self, strScraperName):
         print("Starting " + strScraperName)
-        DataManager.dataManager.start_spider(strScraperName)
+        data_manager.dataManager.start_spider(strScraperName)
 
-    def StopScraper(self, strScraperName):
+    def stop_scraper(self, strScraperName):
         if strScraperName in self.__scrapers:
             print("Item is running. Stopping " + strScraperName)
         else :
             print(strScraperName + " is not current running")
 
     def run_spiders(self):
-        DataManager.dataManager.run_spiders
+        data_manager.dataManager.run_spiders()
 
 
 scrapple = Scrapple()
