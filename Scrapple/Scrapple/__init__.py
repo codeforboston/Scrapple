@@ -1,16 +1,14 @@
-from scrapy_beautifulsoup import *
-import scrapy_crawlera
+from . import DataManager 
 
 class Scrapple:
     __scrapers = set()
 
-    def Intialize(self):
-        
+    def intialize(self):
         print("The scrapple has been initialized")
 
-    def RunScraper(self, strScraperName):
+    def start_scraper(self, strScraperName):
         print("Starting " + strScraperName)
-        self.__scrapers.add(strScraperName)
+        DataManager.dataManager.start_spider(strScraperName)
 
     def StopScraper(self, strScraperName):
         if strScraperName in self.__scrapers:
@@ -18,5 +16,8 @@ class Scrapple:
         else :
             print(strScraperName + " is not current running")
 
+    def run_spiders(self):
+        DataManager.dataManager.run_spiders
 
-scrapple = Scrapple();
+
+scrapple = Scrapple()

@@ -8,10 +8,9 @@ from Scrapple import scrapple
 
 @app.before_first_request
 def _run_on_start():
-    scrapple.Intialize()
-    scrapple.RunScraper("Lists Of Craig")
-    scrapple.StopScraper("Lists Of Craig")
-    scrapple.StopScraper("Blep")
+    scrapple.intialize()
+    scrapple.start_scraper("craigslist")
+    scrapple.run_spiders()
 
 if __name__ == '__main__':
     HOST = environ.get('SERVER_HOST', 'localhost')
