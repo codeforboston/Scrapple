@@ -39,8 +39,8 @@ class DataFactory:
             x = cur.fetchone()
         else:
             x = None
-        # Make the changes to the database persistent
-        self.db_conn.commit()
+            # Make the changes to the database persistent
+            self.db_conn.commit()
         # Close communication with the database
         cur.close()
         self.db_conn.close()
