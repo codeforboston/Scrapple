@@ -67,7 +67,7 @@ class DataFactory:
     def listings_getter(self, rid):
         sql_string = "SELECT * FROM listings WHERE id = {};".format(rid)
         data = self.sql_execute(sql_string, True)
-        print(data)
+        return data
 
     def get_data_factory_conf(self, file_name):
         with open(file_name) as data_file:
@@ -89,4 +89,4 @@ data = {"date_posted": '01/23/2017 14:54',
         "listing_id": "some listing_id"}
 
 #dataFactory.listings_setter(data)
-dataFactory.listings_getter(4)
+print(dataFactory.listings_getter(4))
