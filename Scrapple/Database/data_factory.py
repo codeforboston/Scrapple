@@ -14,6 +14,7 @@ class DataFactory:
             print(self.db_conn)
 
     def postgres_connect(self, conn_conf):
+        # TODO add port number to data_factory_config.json and use
         print("Try to connect to postgres db")
         # Connect to an existing database
         # Define our connection string
@@ -30,13 +31,25 @@ class DataFactory:
             db_conn = None
         return db_conn
 
-    def sql_execute(self, sql_string, fetch):
+    def format_row_data(self, rows, colnames):
+        lrows = []
+        for row in rows:
+            drow = dict(zip(colnames, row))
+            lrows.append(drow)
+        return lrows
+
+    def sql_execute(self, sql_string, fetch, fetchall=None):
         # Open a cursor to perform database operations
         cur = self.db_conn.cursor()
         # Psycopg sql execute
         cur.execute(sql_string)
         if fetch:
-            x = cur.fetchone()
+            if fetchall:
+                rows = cur.fetchall()
+                colnames = [desc[0] for desc in cur.description]
+                x = self.format_row_data(rows, colnames)
+            else:
+                x = cur.fetchone()
         else:
             x = None
             # Make the changes to the database persistent
@@ -64,9 +77,21 @@ class DataFactory:
         # print("Sql INSERT: " + sql_string)
         data = self.sql_execute(sql_string, False)
 
-    def listings_getter(self, rid):
-        sql_string = "SELECT * FROM listings WHERE id = {};".format(rid)
-        data = self.sql_execute(sql_string, True)
+    def listings_getter(self, rid=None, dfrom=None, dto=None, pagesize=None):
+        # TODO move default 500 to data_factory_config.json
+        # TODO verify parameters in valid range
+        if rid:
+            sql_string = "SELECT * FROM listings WHERE id = {};".format(rid)
+            data = self.sql_execute(sql_string, True)
+        else:
+            pagesize = pagesize if pagesize else 500
+            dto = "'" + dto + "'" if dto else "now()"
+            sql_string = "SELECT * FROM listings "
+            sql_string += "WHERE date_posted >= '{}' and date_posted <= {} "
+            sql_string += "ORDER BY date_posted ASC LIMIT {};"
+            sql_string = sql_string.format(dfrom, dto, pagesize)
+            print (sql_string)
+            data = self.sql_execute(sql_string, True, fetchall=True)
         return data
 
     def get_data_factory_conf(self, file_name):
@@ -77,7 +102,7 @@ class DataFactory:
 dataFactory = DataFactory()
 
 
-data = {"date_posted": '01/23/2017 14:54',
+data = {"date_posted": '01/12/2018 14:54',
         "listing_title": "some title",
         "price": "6.66",
         "money": "some title",
@@ -89,4 +114,4 @@ data = {"date_posted": '01/23/2017 14:54',
         "listing_id": "some listing_id"}
 
 #dataFactory.listings_setter(data)
-print(dataFactory.listings_getter(4))
+print(dataFactory.listings_getter(dfrom='01/23/2016')[0])
