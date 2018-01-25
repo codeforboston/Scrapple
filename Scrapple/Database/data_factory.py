@@ -14,11 +14,11 @@ class DataFactory:
             print(self.db_conn)
 
     def postgres_connect(self, conn_conf):
-        # TODO add port number to data_factory_config.json and use
         print("Try to connect to postgres db")
-        # Connect to an existing database
+        # Connect to the postgres database
         # Define our connection string
         conn_string = "host=" + conn_conf["host"]
+        conn_string += " port=" + conn_conf["port"]
         conn_string += " dbname=" + conn_conf["dbname"]
         conn_string += " user=" + conn_conf["user"]
         conn_string += " password=" + conn_conf["pw"]
@@ -78,13 +78,12 @@ class DataFactory:
         data = self.sql_execute(sql_string, False)
 
     def listings_getter(self, rid=None, dfrom=None, dto=None, pagesize=None):
-        # TODO move default 500 to data_factory_config.json
         # TODO verify parameters in valid range
         if rid:
             sql_string = "SELECT * FROM listings WHERE id = {};".format(rid)
             data = self.sql_execute(sql_string, True)
         else:
-            pagesize = pagesize if pagesize else 500
+            pagesize = pagesize if pagesize else self._df_config["pg_config"]["pagesize_max"]
             dto = "'" + dto + "'" if dto else "now()"
             sql_string = "SELECT * FROM listings "
             sql_string += "WHERE date_posted >= '{}' and date_posted <= {} "
@@ -114,4 +113,4 @@ data = {"date_posted": '01/12/2018 14:54',
         "listing_id": "some listing_id"}
 
 #dataFactory.listings_setter(data)
-print(dataFactory.listings_getter(dfrom='01/23/2016')[0])
+print(dataFactory.listings_getter(dfrom='01/23/2016', dto='12/23/2017'))  # dfrom='01/23/2016'  rid=2

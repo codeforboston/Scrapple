@@ -1,1 +1,1 @@
-{"pg_config": {"host": "localhost","user": "postgres","pw": "UBU;db","dbname": "clsp"}}
+{"pg_config": {"host": "localhost","port": "5432", "user": "postgres","pw": "UBU;db","dbname": "clsp","pagesize_max": "1000"}}
