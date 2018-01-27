@@ -1,7 +1,8 @@
 # DataFactory.py
 import psycopg2
 import json
-
+from datetime import datetime
+# TODO support verbosity levels 1,2,3 suppress all print statements for 3
 
 class DataFactory:
     def __init__(self):
@@ -77,20 +78,87 @@ class DataFactory:
         # print("Sql INSERT: " + sql_string)
         data = self.sql_execute(sql_string, False)
 
+    # validation helper methods
+    def valid_pagesize(self, pagesize, pmax):
+        if pagesize:
+            if not (pagesize > 0 and pagesize <= pmax):
+                pagesize = pmax
+        else:
+            pagesize = pmax
+        return pagesize
+
+    def dt_str_2_dt(self, sdate):
+        # convert string date inputs to datetime formats
+        # Set to none if not convertible
+        # Supports only two formats '%Y-%m-%d' postgras native and
+        # '%m/%d/%Y' US local
+        emsg = None
+        try:
+            dt = datetime.strptime(sdate, '%Y-%m-%d')
+        except ValueError:
+            try:
+                dt = datetime.strptime(sdate, '%m/%d/%Y')
+            except ValueError:
+                emit = emsg
+            else:
+                emit = dt
+        else:
+            emit = dt
+        return emit
+
+    def valid_dfrom(self, dfrom):
+        emit = None
+        dtfrom = self.dt_str_2_dt(dfrom)
+        if not dtfrom is None:
+            if datetime.now() >= dtfrom:
+                emit = dtfrom
+        return emit
+
+    def valid_dto(self, dto, dtfrom):
+        emit = None
+        dtto = self.dt_str_2_dt(dto)
+        if not dtto is None:
+            if dtto >= dtfrom:
+                emit = dtto
+        return emit
+
+    def valid_parm_rang(self, dfrom, dto, pagesize, pmax):
+        # check the parameters are invalid ranges
+        # And reset values that are blank to defaults
+        valid = False
+        emit_dfrom, emit_dto = (None, None)
+        if dfrom:
+            dtfrom = self.valid_dfrom(dfrom)
+            if not dtfrom is None:  # if good
+                dtto = self.valid_dto(dto, dtfrom)
+                if not dtto is None:   # if good
+                    pagesize = self.valid_pagesize(pagesize, pmax)
+                    valid = True
+                    emit_dfrom = dtfrom.__str__()
+                    emit_dto = dtto.__str__()
+        return (valid, emit_dfrom, emit_dto, pagesize)
+
     def listings_getter(self, rid=None, dfrom=None, dto=None, pagesize=None):
         # TODO verify parameters in valid range
+        emsg = "Bad request"
         if rid:
             sql_string = "SELECT * FROM listings WHERE id = {};".format(rid)
             data = self.sql_execute(sql_string, True)
         else:
-            pagesize = pagesize if pagesize else self._df_config["pg_config"]["pagesize_max"]
-            dto = "'" + dto + "'" if dto else "now()"
-            sql_string = "SELECT * FROM listings "
-            sql_string += "WHERE date_posted >= '{}' and date_posted <= {} "
-            sql_string += "ORDER BY date_posted ASC LIMIT {};"
-            sql_string = sql_string.format(dfrom, dto, pagesize)
-            print (sql_string)
-            data = self.sql_execute(sql_string, True, fetchall=True)
+            # dfrom must exist and be <= to now
+            pmax = self._df_config["pg_config"]["pagesize_max"]
+            (valid, dfrom, dto, pagesize) = self.valid_parm_rang(dfrom, dto, pagesize, pmax)
+            if valid:
+                dto = "'" + dto + "'" if dto else "now()"
+                # exiqut (dfrom, dto, pagesize)
+                sql_string = "SELECT * FROM listings "
+                sql_string += "WHERE date_posted >= '{}' and date_posted <= {} "
+                sql_string += "ORDER BY date_posted ASC LIMIT {};"
+                sql_string = sql_string.format(dfrom, dto, pagesize)
+                print (sql_string)
+                data = self.sql_execute(sql_string, True, fetchall=True)
+            else:
+                data = emsg
         return data
 
     def get_data_factory_conf(self, file_name):
@@ -114,3 +182,7 @@ data = {"date_posted": '01/12/2018 14:54',
 
 #dataFactory.listings_setter(data)
 print(dataFactory.listings_getter(dfrom='01/23/2016', dto='12/23/2017'))  # dfrom='01/23/2016'  rid=2
+# print("dt_str_2_dt:",dataFactory.dt_str_2_dt('01/23/20c16'))
+# print("valid_dfrom:",dataFactory.valid_dfrom('01/23/20c16'))
+# print("valid_parm_rang:",dataFactory.valid_parm_rang('01/23/20c16', '12/23/2017', 4, 23))
+
