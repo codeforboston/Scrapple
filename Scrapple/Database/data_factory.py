@@ -6,7 +6,8 @@ from datetime import datetime
 
 class DataFactory:
     def __init__(self):
-        self._df_config_path = "data_factory_config.json"
+        #self._df_config_path = "data_factory_config.json"
+        self._df_config_path = "Database/data_factory_config.json"
         self._df_config = self.get_data_factory_conf(self._df_config_path)
         print("Data Factory started")
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
@@ -130,6 +131,8 @@ class DataFactory:
         if dfrom:
             dtfrom = self.valid_dfrom(dfrom)
             if not dtfrom is None:  # if good
+                if dto is None:
+                    dto = datetime.now().strftime("%Y-%m-%d")
                 dtto = self.valid_dto(dto, dtfrom)
                 if not dtto is None:   # if good
                     pagesize = self.valid_pagesize(pagesize, pmax)
@@ -140,7 +143,7 @@ class DataFactory:
 
     def listings_getter(self, rid=None, dfrom=None, dto=None, pagesize=None):
         # TODO verify parameters in valid range
-        emsg = "Bad request"
+        emsg = "Bad Request"
         if rid:
             sql_string = "SELECT * FROM listings WHERE id = {};".format(rid)
             data = self.sql_execute(sql_string, True)
@@ -149,14 +152,16 @@ class DataFactory:
             pmax = self._df_config["pg_config"]["pagesize_max"]
             (valid, dfrom, dto, pagesize) = self.valid_parm_rang(dfrom, dto, pagesize, pmax)
             if valid:
-                dto = "'" + dto + "'" if dto else "now()"
                 # exiqut (dfrom, dto, pagesize)
                 sql_string = "SELECT * FROM listings "
-                sql_string += "WHERE date_posted >= '{}' and date_posted <= {} "
+                sql_string += "WHERE date_posted >= '{}' and date_posted <= '{}' "
                 sql_string += "ORDER BY date_posted ASC LIMIT {};"
                 sql_string = sql_string.format(dfrom, dto, pagesize)
                 print (sql_string)
                 data = self.sql_execute(sql_string, True, fetchall=True)
+                for row in data:
+                    row["date_posted"] = row["date_posted"].__str__()
+                    row["date_created"] = row["date_created"].__str__()
             else:
                 data = emsg
         return data
@@ -166,23 +171,26 @@ class DataFactory:
             dict_from_json = json.load(data_file)
         return dict_from_json
 
-dataFactory = DataFactory()
+#dataFactory = DataFactory()
 
 
-data = {"date_posted": '01/12/2018 14:54',
-        "listing_title": "some title",
-        "price": "6.66",
-        "money": "some title",
-        "latitude": "78.87",
-        "longitude": "7.87",
-        "address": "some address",
-        "desciption": "some desciption",
-        "link": "some url",
-        "listing_id": "some listing_id"}
+# data = {"date_posted": '01/12/2018 14:54',
+#         "listing_title": "some title",
+#         "price": "6.66",
+#         "money": "some title",
+#         "latitude": "78.87",
+#         "longitude": "7.87",
+#         "address": "some address",
+#         "desciption": "some desciption",
+#         "link": "some url",
+#         "listing_id": "some listing_id"}
 
-#dataFactory.listings_setter(data)
-print(dataFactory.listings_getter(dfrom='01/23/2016', dto='12/23/2017'))  # dfrom='01/23/2016'  rid=2
-# print("dt_str_2_dt:",dataFactory.dt_str_2_dt('01/23/20c16'))
-# print("valid_dfrom:",dataFactory.valid_dfrom('01/23/20c16'))
-# print("valid_parm_rang:",dataFactory.valid_parm_rang('01/23/20c16', '12/23/2017', 4, 23))
+# #dataFactory.listings_setter(data)
+# lrows = dataFactory.listings_getter(rid=None,dfrom='01/23/2016', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
+
+# print(json.dumps(lrows))
+
+# # print("dt_str_2_dt:",dataFactory.dt_str_2_dt('01/23/20c16'))
+# # print("valid_dfrom:",dataFactory.valid_dfrom('01/23/20c16'))
+# # print("valid_parm_rang:",dataFactory.valid_parm_rang('01/23/20c16', '12/23/2017', 4, 23))
 
