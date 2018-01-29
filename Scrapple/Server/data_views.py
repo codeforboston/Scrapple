@@ -12,7 +12,7 @@ import json
 
 
 @app.route('/listings', methods=["POST"])
-def handler():
+def listings_handler():
     rid = request.args.get('rid', None)
     dfrom = request.args.get('dfrom', None)
     dto = request.args.get('dto', None)
