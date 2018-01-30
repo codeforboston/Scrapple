@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import render_template
 from flask import request
 from Server import app
-#from Scrapple import scrapple
+from Scrapple import scrapple
 from Database import dataFactory
 import json
 
@@ -22,6 +22,8 @@ def listings_handler():
     output = dataFactory.listings_getter(rid, dfrom, dto, pagesize)
     emit_sjson = json.dumps(output)
     return emit_sjson
+
+
 @app.route('/start_scraper', methods=["POST"])
 def start_scraper():
     strScraperName = request.args.get('scraper')
