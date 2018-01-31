@@ -49,3 +49,10 @@
   `FLASK_APP=./runserver.py FLASK_DEBUG=1 flask run`
   
   Omit `FLASK_DEBUG=1` to disable automatic code reloading.
+  
+# Alternative Setup: Docker
+
+  If you have Docker and Docker Compose installed, cd to the `Scrapple`
+  directory and run:
+  
+  `docker-compose up`
