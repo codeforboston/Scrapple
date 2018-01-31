@@ -1,7 +1,11 @@
 # DataFactory.py
-import psycopg2
 import json
+import os
 from datetime import datetime
+
+import psycopg2
+
+
 # TODO support verbosity levels 1,2,3 suppress all print statements for 3
 
 class DataFactory:
@@ -15,15 +19,18 @@ class DataFactory:
             print("Connected to db: ")
             print(self.db_conn)
 
-    def postgres_connect(self, conn_conf):
+    def postgres_connect(self, conn_defaults):
         print("Try to connect to postgres db")
         # Connect to the postgres database
         # Define our connection string
-        conn_string = "host=" + conn_conf["host"]
-        conn_string += " port=" + conn_conf["port"]
-        conn_string += " dbname=" + conn_conf["dbname"]
-        conn_string += " user=" + conn_conf["user"]
-        conn_string += " password=" + conn_conf["pw"]
+        conn_string = os.environ.get("POSTGRES_URI")
+
+        if not conn_string:
+            conn_defaults.setdefault("password", conn_defaults.get("pw"))
+            conn_string = " ".join(
+                k + "=" + conn_defaults[k]
+                for k in ("host", "port", "dbname", "user", "password")
+            )
         #print("Connecting to database: " + conn_string)
         # get a connection
         try:
@@ -193,4 +200,3 @@ class DataFactory:
 # # print("dt_str_2_dt:",dataFactory.dt_str_2_dt('01/23/20c16'))
 # # print("valid_dfrom:",dataFactory.valid_dfrom('01/23/20c16'))
 # # print("valid_parm_rang:",dataFactory.valid_parm_rang('01/23/20c16', '12/23/2017', 4, 23))
-

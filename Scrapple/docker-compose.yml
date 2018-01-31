@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  legalhousing:
+    build: .
+    command: sh /app/docker_start.sh
+    environment:
+      POSTGRES_URI: "host=postgres user=legalhousing"
+      SERVER_PORT: 5555
+      FLASK_APP: /app/runserver.py
+      FLASK_DEBUG: 1
+    expose:
+      - "5555"
+    ports:
+      - "5555:5555"
+    links:
+      - postgres
+    volumes:
+      - .:/app
+    working_dir: /app/
+  postgres:
+    image: postgres:10.1
+    volumes:
+      - data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: legalhousing
+
+volumes:
+  data:
+    driver: local
