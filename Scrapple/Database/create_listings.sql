@@ -1,6 +1,6 @@
 -- create_listings.sql
 
-CREATE TABLE public.listings
+CREATE TABLE IF NOT EXISTS public.listings
 (
 	id serial NOT NULL,
     date_posted TIMESTAMP NOT NULL,
@@ -14,4 +14,4 @@ CREATE TABLE public.listings
     link VARCHAR (255) COLLATE pg_catalog."default",
     listing_id VARCHAR (30) COLLATE pg_catalog."default",
     CONSTRAINT listings_pkey PRIMARY KEY (id)
-)
+);
