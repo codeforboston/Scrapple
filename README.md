@@ -61,7 +61,7 @@
 
   To retrieve listings between a given date range
 
-  http:// <host> :5555/listings/get?dfrom=<str_from>&dto=<str_dto>&pagesize=<pagesize>
+  http://&lt;host&gt;:5555/listings/get?dfrom=<str_from>&dto=<str_dto>&pagesize=&lt;pagesize>
 
   dfrom and dto describe the date range if dto is omitted it defaults to the current date
 
@@ -72,6 +72,6 @@
   If pagesize exceeds page_maximum it's reset to page_maximum.
 
   Example valid URIs:
-    <p>http://localhost:5555/listings/get?dfrom=2017-01-01&dto=2018-01-01&pagesize=400</p>
-    <p>http://localhost:5555/listings/get?dfrom=2017-01-01</p>
+  <p>http://localhost:5555/listings/get?dfrom=2017-01-01&dto=2018-01-01&pagesize=400</p>
+  <p>http://localhost:5555/listings/get?dfrom=2017-01-01</p>
 
