@@ -10,7 +10,7 @@ from Database import dataFactory
 import json
 
 
-@app.route('/listings', methods=["GET"])
+@app.route('/listings/get', methods=["GET"])
 def listings_handler():
     rid = request.args.get('rid', None)
     dfrom = request.args.get('dfrom', None)
@@ -29,16 +29,7 @@ def listings_handler():
     emit_sjson = json.dumps(output)
     return emit_sjson
 
-<<<<<<< HEAD
 
-@app.route('/start_scraper', methods=["POST"])
-def start_scraper():
-    strScraperName = request.args.get('scraper')
-    scrapple.start_scraper(strScraperName)
-    scrapple.run_spiders()
-    print("starting scraper " + strScraperName)
-    return "success"
-=======
 @app.route('/start_scraper', methods=["POST"])
 def start_scraper():
     scraper_name = request.args.get('scraper')
@@ -50,4 +41,4 @@ def start_scraper():
         return "success"
     else:
         abort(Response("Missing parameter: scraper", status=401))
->>>>>>> fc012ae438d0073f8955880b0e64fc25717b2d86
+
