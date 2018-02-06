@@ -56,3 +56,23 @@
   directory and run:
   
   `docker-compose up`
+
+## Data API 
+
+  To retrieve listings between a given date range
+
+  http://&lt;host&gt;:5555/listings/get?dfrom=<str_from>&dto=<str_dto>&pagesize=&lt;pagesize>
+
+  dfrom and dto describe the date range if dto is omitted it defaults to the current date
+
+  Two date formats are supported YYY-MM-DD and MM/DD/YYYY
+
+  pagesize gives the number of records to be returned starting with the oldest record if there are more records in the range  than pagesize then only the first pagesize number of records will be returned.
+  If pagesize is omitted it defaults to systems configurable page_maximum which is the supplied config file sets to 500.
+  If pagesize exceeds page_maximum it's reset to page_maximum.
+
+  Example valid URIs:
+  <p>http://localhost:5555/listings/get?dfrom=2017-01-01&dto=2018-01-01&pagesize=400</p>
+  <p>http://localhost:5555/listings/get?dfrom=2017-01-01</p>
+
+  The endpoint returns a JSON in the form of a list of dictionaries, each dictionary describes listing record.
