@@ -65,7 +65,7 @@ class DataFactory:
             self.db_conn.commit()
         # Close communication with the database
         cur.close()
-        self.db_conn.close()
+        #self.db_conn.close()
         return x
 
     def listings_setter(self, row_data):
@@ -178,10 +178,10 @@ class DataFactory:
             dict_from_json = json.load(data_file)
         return dict_from_json
 
-#dataFactory = DataFactory()
+# dataFactory = DataFactory()
 
 
-# data = {"date_posted": '01/12/2018 14:54',
+# data = {"date_posted": '10/09/2017 14:54',
 #         "listing_title": "some title",
 #         "price": "6.66",
 #         "money": "some title",
@@ -192,7 +192,7 @@ class DataFactory:
 #         "link": "some url",
 #         "listing_id": "some listing_id"}
 
-# #dataFactory.listings_setter(data)
+#dataFactory.listings_setter(data)
 # lrows = dataFactory.listings_getter(rid=None,dfrom='01/23/2016', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
 
 # print(json.dumps(lrows))
