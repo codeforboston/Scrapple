@@ -75,3 +75,4 @@
   <p>http://localhost:5555/listings/get?dfrom=2017-01-01&dto=2018-01-01&pagesize=400</p>
   <p>http://localhost:5555/listings/get?dfrom=2017-01-01</p>
 
+  The endpoint returns a JSON in the form of a list of dictionaries, each dictionary describes listing record.
