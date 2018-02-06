@@ -72,6 +72,6 @@
   If pagesize exceeds page_maximum it's reset to page_maximum.
 
   Example valid URIs:
-    <b>http://localhost:5555/listings/get?dfrom=2017-01-01&dto=2018-01-01&pagesize=400</b>
-    <b>http://localhost:5555/listings/get?dfrom=2017-01-01</b>
+    <p>http://localhost:5555/listings/get?dfrom=2017-01-01&dto=2018-01-01&pagesize=400</p>
+    <p>http://localhost:5555/listings/get?dfrom=2017-01-01</p>
 
