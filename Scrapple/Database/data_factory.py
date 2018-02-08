@@ -13,11 +13,18 @@ class DataFactory:
         #self._df_config_path = "data_factory_config.json"
         self._df_config_path = "Database/data_factory_config.json"
         self._df_config = self.get_data_factory_conf(self._df_config_path)
+        self.item_names = ("date", "title", "link", "price", 
+                                   "beds", "size", "craigId", "baths", "latitude", 
+                                   "longitude", "content")
+        self.db_names = ("date_posted", "listing_title", "link", "price", 
+                                 "beds", "size", "listing_id", "baths", "latitude", 
+                                 "longitude", "desciption") 
         print("Data Factory started")
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         if self.db_conn:
             print("Connected to db: ")
             print(self.db_conn)
+            self.db_conn.close()
 
     def postgres_connect(self, conn_defaults):
         print("Try to connect to postgres db")
@@ -47,7 +54,9 @@ class DataFactory:
             lrows.append(drow)
         return lrows
 
-    def sql_execute(self, sql_string, fetch, fetchall=None):
+    def sql_execute(self, sql_string, fetch, fetchall=None):        
+        # Open a connection
+        self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         # Open a cursor to perform database operations
         cur = self.db_conn.cursor()
         # Psycopg sql execute
@@ -65,26 +74,22 @@ class DataFactory:
             self.db_conn.commit()
         # Close communication with the database
         cur.close()
-        #self.db_conn.close()
+        self.db_conn.close()
         return x
 
-    def listings_setter(self, row_data):
-        sql_string = "INSERT INTO listings (date_posted ,listing_title, price, "
-        sql_string += "latitude, longitude , address , desciption, "
-        sql_string += "link , listing_id) "
-        sql_string += "VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}'"
-        sql_string += ")"
-        sql_string = sql_string.format(row_data["date_posted"],
-                                       row_data["listing_title"],
-                                       row_data["price"],
-                                       row_data["latitude"],
-                                       row_data["longitude"],
-                                       row_data["address"],
-                                       row_data["desciption"],
-                                       row_data["link"],
-                                       row_data["listing_id"])
-        # print("Sql INSERT: " + sql_string)
-        data = self.sql_execute(sql_string, False)
+    
+
+    def listings_setter(self, row_item):        
+        # Set up SQL insert string
+        # Built from two sets expected item attributes and expected database fields
+        rdata = []
+        for k in self.item_names:
+            rdata.append( row_item[k] )
+        sql_str = "INSERT INTO listings (" + ", ".join( self.db_names ) + ") "
+        sql_str += "VALUES (" + ", ".join ( ["'{}'"]*len(self.db_names) ) + ") "        
+        sql_str = sql_str.format(*rdata)
+        # print("Sql INSERT: " + sql_str)
+        data = self.sql_execute(sql_str, False)
 
     # validation helper methods
     def valid_pagesize(self, pagesize, pmax):
@@ -181,18 +186,20 @@ class DataFactory:
 # dataFactory = DataFactory()
 
 
-# data = {"date_posted": '10/09/2017 14:54',
-#         "listing_title": "some title",
+# item = {"date": '02/02/2017 14:54',
+#         "title": "some title",
 #         "price": "6.66",
-#         "money": "some title",
+#         "beds": "3",
+#         "size": "1270",
+#         "baths": "1",
 #         "latitude": "78.87",
 #         "longitude": "7.87",
 #         "address": "some address",
-#         "desciption": "some desciption",
+#         "content": "some desciption",
 #         "link": "some url",
-#         "listing_id": "some listing_id"}
+#         "craigId": "12535"}
 
-#dataFactory.listings_setter(data)
+# dataFactory.listings_setter(item)
 # lrows = dataFactory.listings_getter(rid=None,dfrom='01/23/2016', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
 
 # print(json.dumps(lrows))
