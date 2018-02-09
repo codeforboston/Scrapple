@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS public.listings
     baths INTEGER,
     latitude REAL,
     longitude REAL,
-    address VARCHAR (100) COLLATE pg_catalog."default",
     desciption TEXT COLLATE pg_catalog."default",
     link VARCHAR (255) COLLATE pg_catalog."default",
     listing_id VARCHAR (30) COLLATE pg_catalog."default",
