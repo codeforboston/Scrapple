@@ -3,6 +3,8 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 from . import pipeline
 from . import craig_spyder
+from Database import dataFactory
+
 
 class DataManager:
     def __init__(self):
@@ -11,7 +13,6 @@ class DataManager:
         print("Data Manager started")
         self.__activeSpiders = {}
         
-
     def start_spider(self, strSpiderName):
         print("Added spider " + strSpiderName)
         process = CrawlerProcess(get_project_settings())
@@ -27,7 +28,7 @@ class DataManager:
         for spider, process in self.__activeSpiders.items():
             process.start()
 
-    def new_item_recieved(self, item):
-        print("New Item")
+    def new_item_recieved(self, item):        
+        dataFactory.listings_setter( item )
 
 dataManager = DataManager()

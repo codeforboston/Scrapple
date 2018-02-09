@@ -27,7 +27,7 @@ class DataFactory:
             self.db_conn.close()
 
     def postgres_connect(self, conn_defaults):
-        print("Try to connect to postgres db")
+        #print("Try to connect to postgres db")
         # Connect to the postgres database
         # Define our connection string
         conn_string = os.environ.get("POSTGRES_URI")
@@ -54,13 +54,13 @@ class DataFactory:
             lrows.append(drow)
         return lrows
 
-    def sql_execute(self, sql_string, fetch, fetchall=None):        
+    def sql_execute(self, sql_string, fetch, fetchall=None, sql_data=None):        
         # Open a connection
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         # Open a cursor to perform database operations
         cur = self.db_conn.cursor()
         # Psycopg sql execute
-        cur.execute(sql_string)
+        cur.execute(sql_string, sql_data)
         if fetch:
             if fetchall:
                 rows = cur.fetchall()
@@ -77,19 +77,17 @@ class DataFactory:
         self.db_conn.close()
         return x
 
-    
-
     def listings_setter(self, row_item):        
         # Set up SQL insert string
         # Built from two sets expected item attributes and expected database fields
-        rdata = []
+        sql_data = []
         for k in self.item_names:
-            rdata.append( row_item[k] )
+            sql_data.append( row_item.get(k, None) )
         sql_str = "INSERT INTO listings (" + ", ".join( self.db_names ) + ") "
-        sql_str += "VALUES (" + ", ".join ( ["'{}'"]*len(self.db_names) ) + ") "        
-        sql_str = sql_str.format(*rdata)
-        # print("Sql INSERT: " + sql_str)
-        data = self.sql_execute(sql_str, False)
+        sql_str += "VALUES (" + ", ".join ( ["%s"]*len(self.db_names) ) + ") " 
+        #print("Sql INSERT: " + sql_str)
+        #print("sql_data", sql_data,"\n")
+        data = self.sql_execute(sql_str, False, sql_data=sql_data)
 
     # validation helper methods
     def valid_pagesize(self, pagesize, pmax):
@@ -183,27 +181,23 @@ class DataFactory:
             dict_from_json = json.load(data_file)
         return dict_from_json
 
+
 # dataFactory = DataFactory()
 
-
-# item = {"date": '02/02/2017 14:54',
-#         "title": "some title",
+# item = {"date": '02/07/2017 14:54',
+#         "title": "some'o title",
 #         "price": "6.66",
 #         "beds": "3",
 #         "size": "1270",
 #         "baths": "1",
 #         "latitude": "78.87",
 #         "longitude": "7.87",
-#         "address": "some address",
 #         "content": "some desciption",
 #         "link": "some url",
-#         "craigId": "12535"}
+#         "craigId": "10908976"}
 
 # dataFactory.listings_setter(item)
 # lrows = dataFactory.listings_getter(rid=None,dfrom='01/23/2016', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
 
 # print(json.dumps(lrows))
 
-# # print("dt_str_2_dt:",dataFactory.dt_str_2_dt('01/23/20c16'))
-# # print("valid_dfrom:",dataFactory.valid_dfrom('01/23/20c16'))
-# # print("valid_parm_rang:",dataFactory.valid_parm_rang('01/23/20c16', '12/23/2017', 4, 23))
