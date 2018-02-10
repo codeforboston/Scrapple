@@ -57,7 +57,7 @@
   
   `docker-compose up`
 
-## Data API 
+# Data API 
 
   To retrieve listings between a given date range
 
@@ -76,3 +76,17 @@
   <p>http://localhost:5555/listings/get?dfrom=2017-01-01</p>
 
   The endpoint returns a JSON in the form of a list of dictionaries, each dictionary describes listing record.
+
+# Scraper operations 
+
+  The scraper runs by executing Scraper modules which may target specific websites.
+
+  Currently there is only one scraper module which scrapes listings from craigslist
+
+  Once a module has been activated it remains active until the environment which launches the flask server is closed. Once activated it will continue to scrape based on internal scraping schedule and parameters set in scraper module.
+
+  Currently there is only one module craig_spyder.py to start scraping using the following POST command.
+  http://<host>:5555/start_scraper?scraper=craigslist
+
+  
+
