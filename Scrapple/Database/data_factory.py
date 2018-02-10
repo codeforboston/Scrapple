@@ -2,7 +2,6 @@
 import json
 import os
 from datetime import datetime
-
 import psycopg2
 
 
@@ -13,12 +12,12 @@ class DataFactory:
         #self._df_config_path = "data_factory_config.json"
         self._df_config_path = "Database/data_factory_config.json"
         self._df_config = self.get_data_factory_conf(self._df_config_path)
-        self.item_names = ("date", "title", "link", "price", 
-                                   "beds", "size", "craigId", "baths", "latitude", 
+        self.item_names = ("date", "title", "link", "price",
+                                   "beds", "size", "craigId", "baths", "latitude",
                                    "longitude", "content")
         self.db_names = ("date_posted", "listing_title", "link", "price", 
-                                 "beds", "size", "listing_id", "baths", "latitude", 
-                                 "longitude", "desciption") 
+                                 "beds", "size", "listing_id", "baths", "latitude",
+                                 "longitude", "desciption")
         print("Data Factory started")
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         if self.db_conn:
@@ -39,7 +38,7 @@ class DataFactory:
                 for k in ("host", "port", "dbname", "user", "password")
             )
         #print("Connecting to database: " + conn_string)
-        # get a connection
+        # Get a connection
         try:
             db_conn = psycopg2.connect(conn_string)
         except psycopg2.Error as e:
@@ -85,8 +84,8 @@ class DataFactory:
             sql_data.append( row_item.get(k, None) )
         sql_str = "INSERT INTO listings (" + ", ".join( self.db_names ) + ") "
         sql_str += "VALUES (" + ", ".join ( ["%s"]*len(self.db_names) ) + ") " 
-        #print("Sql INSERT: " + sql_str)
-        #print("sql_data", sql_data,"\n")
+        # print("Sql INSERT: " + sql_str)
+        # print("sql_data", sql_data,"\n")
         data = self.sql_execute(sql_str, False, sql_data=sql_data)
 
     # validation helper methods
@@ -99,7 +98,7 @@ class DataFactory:
         return pagesize
 
     def dt_str_2_dt(self, sdate):
-        # convert string date inputs to datetime formats
+        # Convert string date inputs to datetime formats
         # Set to none if not convertible
         # Supports only two formats '%Y-%m-%d' postgras native and
         # '%m/%d/%Y' US local
@@ -134,7 +133,7 @@ class DataFactory:
         return emit
 
     def valid_parm_rang(self, dfrom, dto, pagesize, pmax):
-        # check the parameters are invalid ranges
+        # Check the parameters are invalid ranges
         # And reset values that are blank to defaults
         valid = False
         emit_dfrom, emit_dto = (None, None)
@@ -162,13 +161,13 @@ class DataFactory:
             pmax = self._df_config["pg_config"]["pagesize_max"]
             (valid, dfrom, dto, pagesize) = self.valid_parm_rang(dfrom, dto, pagesize, pmax)
             if valid:
-                # exiqut (dfrom, dto, pagesize)
-                sql_string = "SELECT * FROM listings "
-                sql_string += "WHERE date_posted >= '{}' and date_posted <= '{}' "
-                sql_string += "ORDER BY date_posted ASC LIMIT {};"
-                sql_string = sql_string.format(dfrom, dto, pagesize)
-                print (sql_string)
-                data = self.sql_execute(sql_string, True, fetchall=True)
+                # Set up sql_str and sql_data
+                sql_str = "SELECT * FROM listings "
+                sql_str += "WHERE date_posted >= %s and date_posted <= %s "
+                sql_str += "ORDER BY date_posted ASC LIMIT %s;"
+                sql_data = [dfrom, dto, pagesize]
+                # print (sql_string)
+                data = self.sql_execute(sql_str, True, fetchall=True, sql_data=sql_data)
                 for row in data:
                     row["date_posted"] = row["date_posted"].__str__()
                     row["date_created"] = row["date_created"].__str__()
@@ -182,7 +181,7 @@ class DataFactory:
         return dict_from_json
 
 
-# dataFactory = DataFactory()
+#dataFactory = DataFactory()
 
 # item = {"date": '02/07/2017 14:54',
 #         "title": "some'o title",
@@ -197,7 +196,7 @@ class DataFactory:
 #         "craigId": "10908976"}
 
 # dataFactory.listings_setter(item)
-# lrows = dataFactory.listings_getter(rid=None,dfrom='01/23/2016', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
+#lrows = dataFactory.listings_getter(rid=None,dfrom='2018-02-09', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
 
-# print(json.dumps(lrows))
-
+#print(json.dumps(lrows))
+# SELECT * FROM listings WHERE date_posted >= '2018-02-09 14:00:00' and date_posted <= '2018-02-10 00:00:00' ORDER BY date_posted ASC LIMIT 1000;
