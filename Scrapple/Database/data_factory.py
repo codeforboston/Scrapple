@@ -10,7 +10,7 @@ import psycopg2
 class DataFactory:
     def __init__(self):
         self._df_app_path = "Database/"
-        self._df_app_path = ""
+        #self._df_app_path = ""
         self._sql_create_path = self._df_app_path + "create_listings.sql"
         self._df_config_path = self._df_app_path + "data_factory_config.json"
         self._df_config = self.get_data_factory_conf(self._df_config_path)
@@ -177,10 +177,13 @@ class DataFactory:
                 data = emsg
         return data
 
-        # def listings_create(self):
-        # with open(self._sql_create_file) as sql_file:
-        #     sql_str = xxxx sql_file
-        # self.sql_execute(sql_str, None, False)
+    def listings_create(self):
+        with open(self._sql_create_path, "r") as sql_statment:
+            sql_str = ""
+            for sql_ln in sql_statment:
+                sql_str += sql_ln
+        return sql_str
+    #self.sql_execute(sql_str, None, False)
 
     def get_data_factory_conf(self, file_name):
         with open(file_name) as data_file:
@@ -207,3 +210,4 @@ class DataFactory:
 # lrows = dataFactory.listings_getter(rid=719,dfrom=None, dto=None, pagesize=None)
 # print("json.dumps",json.dumps(lrows))
 # SELECT * FROM listings WHERE date_posted >= '2018-02-09 14:00:00' and date_posted <= '2018-02-10 00:00:00' ORDER BY date_posted ASC LIMIT 1000;
+#print(dataFactory.listings_create())

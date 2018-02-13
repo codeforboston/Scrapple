@@ -86,7 +86,7 @@
   Once a module has been activated it remains active until the environment which launches the flask server is closed. Once activated it will continue to scrape based on internal scraping schedule and parameters set in scraper module.
 
   Currently there is only one module craig_spyder.py to start scraping using the following POST command.
-  http://<host>:5555/start_scraper?scraper=craigslist
+  http://&lt;host&gt;:5555/start_scraper?scraper=craigslist
 
   
 
