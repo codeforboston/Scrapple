@@ -9,8 +9,10 @@ import psycopg2
 
 class DataFactory:
     def __init__(self):
-        #self._df_config_path = "data_factory_config.json"
-        self._df_config_path = "Database/data_factory_config.json"
+        self._df_app_path = "Database/"
+        self._df_app_path = ""
+        self._sql_create_path = self._df_app_path + "create_listings.sql"
+        self._df_config_path = self._df_app_path + "data_factory_config.json"
         self._df_config = self.get_data_factory_conf(self._df_config_path)
         self.item_names = ("date", "title", "link", "price",
                                    "beds", "size", "craigId", "baths", "latitude",
@@ -46,35 +48,38 @@ class DataFactory:
             db_conn = None
         return db_conn
 
-    def format_row_data(self, rows, colnames):
-        lrows = []
-        for row in rows:
-            drow = dict(zip(colnames, row))
-            lrows.append(drow)
-        return lrows
+    def format_a_row(self, row, colnames):
+        drow = dict(zip(colnames, row))
+        drow["date_posted"] = drow["date_posted"].__str__()
+        drow["date_created"] = drow["date_created"].__str__()
+        return drow
 
-    def sql_execute(self, sql_string, fetch, fetchall=None, sql_data=None):        
+    def format_row_data(self, rows, colnames):
+        return (self.format_a_row(row, colnames) for row in rows)
+
+    def sql_execute(self, sql_string, sql_data, fetch, fetchall=None):        
         # Open a connection
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         # Open a cursor to perform database operations
         cur = self.db_conn.cursor()
         # Psycopg sql execute
         cur.execute(sql_string, sql_data)
+        colnames = [desc[0] for desc in cur.description]        
         if fetch:
             if fetchall:
                 rows = cur.fetchall()
-                colnames = [desc[0] for desc in cur.description]
-                x = self.format_row_data(rows, colnames)
+                emit = self.format_row_data(rows, colnames)
             else:
-                x = cur.fetchone()
+                row = cur.fetchone()
+                emit = self.format_a_row(row, colnames)
         else:
-            x = None
+            emit = None
             # Make the changes to the database persistent
             self.db_conn.commit()
         # Close communication with the database
         cur.close()
         self.db_conn.close()
-        return x
+        return emit
 
     def listings_setter(self, row_item):        
         # Set up SQL insert string
@@ -86,7 +91,7 @@ class DataFactory:
         sql_str += "VALUES (" + ", ".join ( ["%s"]*len(self.db_names) ) + ") " 
         # print("Sql INSERT: " + sql_str)
         # print("sql_data", sql_data,"\n")
-        data = self.sql_execute(sql_str, False, sql_data=sql_data)
+        data = self.sql_execute(sql_str, sql_data, False)
 
     # validation helper methods
     def valid_pagesize(self, pagesize, pmax):
@@ -151,11 +156,11 @@ class DataFactory:
         return (valid, emit_dfrom, emit_dto, pagesize)
 
     def listings_getter(self, rid=None, dfrom=None, dto=None, pagesize=None):
-        # TODO verify parameters in valid range
         emsg = "Bad Request"
         if rid:
-            sql_string = "SELECT * FROM listings WHERE id = {};".format(rid)
-            data = self.sql_execute(sql_string, True)
+            # Set up sql_str and sql_data
+            sql_string = "SELECT * FROM listings WHERE id = %s;"
+            data = list(self.sql_execute(sql_string, [rid], True))
         else:
             # dfrom must exist and be <= to now
             pmax = self._df_config["pg_config"]["pagesize_max"]
@@ -167,13 +172,15 @@ class DataFactory:
                 sql_str += "ORDER BY date_posted ASC LIMIT %s;"
                 sql_data = [dfrom, dto, pagesize]
                 # print (sql_string)
-                data = self.sql_execute(sql_str, True, fetchall=True, sql_data=sql_data)
-                for row in data:
-                    row["date_posted"] = row["date_posted"].__str__()
-                    row["date_created"] = row["date_created"].__str__()
+                data = self.sql_execute(sql_str, sql_data, True, fetchall=True)                
             else:
                 data = emsg
         return data
+
+        # def listings_create(self):
+        # with open(self._sql_create_file) as sql_file:
+        #     sql_str = xxxx sql_file
+        # self.sql_execute(sql_str, None, False)
 
     def get_data_factory_conf(self, file_name):
         with open(file_name) as data_file:
@@ -183,7 +190,7 @@ class DataFactory:
 
 #dataFactory = DataFactory()
 
-# item = {"date": '02/07/2017 14:54',
+# item = {"date": '02/12/2017 12:00',
 #         "title": "some'o title",
 #         "price": "6.66",
 #         "beds": "3",
@@ -193,10 +200,10 @@ class DataFactory:
 #         "longitude": "7.87",
 #         "content": "some desciption",
 #         "link": "some url",
-#         "craigId": "10908976"}
+#         "craigId": "1666976"}
 
 # dataFactory.listings_setter(item)
-#lrows = dataFactory.listings_getter(rid=None,dfrom='2018-02-09', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
-
-#print(json.dumps(lrows))
+#lrows = dataFactory.listings_getter(rid=None,dfrom='2018-02-10', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
+# lrows = dataFactory.listings_getter(rid=719,dfrom=None, dto=None, pagesize=None)
+# print("json.dumps",json.dumps(lrows))
 # SELECT * FROM listings WHERE date_posted >= '2018-02-09 14:00:00' and date_posted <= '2018-02-10 00:00:00' ORDER BY date_posted ASC LIMIT 1000;
