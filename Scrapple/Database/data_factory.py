@@ -2,7 +2,6 @@
 import json
 import os
 from datetime import datetime
-
 import psycopg2
 
 
@@ -10,17 +9,26 @@ import psycopg2
 
 class DataFactory:
     def __init__(self):
-        #self._df_config_path = "data_factory_config.json"
-        self._df_config_path = "Database/data_factory_config.json"
+        self._df_app_path = "Database/"
+        #self._df_app_path = ""
+        self._sql_create_path = self._df_app_path + "create_listings.sql"
+        self._df_config_path = self._df_app_path + "data_factory_config.json"
         self._df_config = self.get_data_factory_conf(self._df_config_path)
+        self.item_names = ("date", "title", "link", "price",
+                                   "beds", "size", "craigId", "baths", "latitude",
+                                   "longitude", "content")
+        self.db_names = ("date_posted", "listing_title", "link", "price", 
+                                 "beds", "size", "listing_id", "baths", "latitude",
+                                 "longitude", "desciption")
         print("Data Factory started")
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         if self.db_conn:
             print("Connected to db: ")
             print(self.db_conn)
+            self.db_conn.close()
 
     def postgres_connect(self, conn_defaults):
-        print("Try to connect to postgres db")
+        #print("Try to connect to postgres db")
         # Connect to the postgres database
         # Define our connection string
         conn_string = os.environ.get("POSTGRES_URI")
@@ -32,7 +40,7 @@ class DataFactory:
                 for k in ("host", "port", "dbname", "user", "password")
             )
         #print("Connecting to database: " + conn_string)
-        # get a connection
+        # Get a connection
         try:
             db_conn = psycopg2.connect(conn_string)
         except psycopg2.Error as e:
@@ -40,51 +48,50 @@ class DataFactory:
             db_conn = None
         return db_conn
 
-    def format_row_data(self, rows, colnames):
-        lrows = []
-        for row in rows:
-            drow = dict(zip(colnames, row))
-            lrows.append(drow)
-        return lrows
+    def format_a_row(self, row, colnames):
+        drow = dict(zip(colnames, row))
+        drow["date_posted"] = drow["date_posted"].__str__()
+        drow["date_created"] = drow["date_created"].__str__()
+        return drow
 
-    def sql_execute(self, sql_string, fetch, fetchall=None):
+    def format_row_data(self, rows, colnames):
+        return (self.format_a_row(row, colnames) for row in rows)
+
+    def sql_execute(self, sql_string, sql_data, fetch, fetchall=None):        
+        # Open a connection
+        self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         # Open a cursor to perform database operations
         cur = self.db_conn.cursor()
         # Psycopg sql execute
-        cur.execute(sql_string)
+        cur.execute(sql_string, sql_data)
+        colnames = [desc[0] for desc in cur.description]        
         if fetch:
             if fetchall:
                 rows = cur.fetchall()
-                colnames = [desc[0] for desc in cur.description]
-                x = self.format_row_data(rows, colnames)
+                emit = self.format_row_data(rows, colnames)
             else:
-                x = cur.fetchone()
+                row = cur.fetchone()
+                emit = self.format_a_row(row, colnames)
         else:
-            x = None
+            emit = None
             # Make the changes to the database persistent
             self.db_conn.commit()
         # Close communication with the database
         cur.close()
         self.db_conn.close()
-        return x
+        return emit
 
-    def listings_setter(self, row_data):
-        sql_string = "INSERT INTO listings (date_posted ,listing_title, price, "
-        sql_string += "latitude, longitude , address , desciption, "
-        sql_string += "link , listing_id) "
-        sql_string += "VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}'"
-        sql_string += ")"
-        sql_string = sql_string.format(row_data["date_posted"],
-                                       row_data["listing_title"],
-                                       row_data["price"],
-                                       row_data["latitude"],
-                                       row_data["longitude"],
-                                       row_data["address"],
-                                       row_data["desciption"],
-                                       row_data["link"],
-                                       row_data["listing_id"])
-        # print("Sql INSERT: " + sql_string)
-        data = self.sql_execute(sql_string, False)
+    def listings_setter(self, row_item):        
+        # Set up SQL insert string
+        # Built from two sets expected item attributes and expected database fields
+        sql_data = []
+        for k in self.item_names:
+            sql_data.append( row_item.get(k, None) )
+        sql_str = "INSERT INTO listings (" + ", ".join( self.db_names ) + ") "
+        sql_str += "VALUES (" + ", ".join ( ["%s"]*len(self.db_names) ) + ") " 
+        # print("Sql INSERT: " + sql_str)
+        # print("sql_data", sql_data,"\n")
+        data = self.sql_execute(sql_str, sql_data, False)
 
     # validation helper methods
     def valid_pagesize(self, pagesize, pmax):
@@ -96,7 +103,7 @@ class DataFactory:
         return pagesize
 
     def dt_str_2_dt(self, sdate):
-        # convert string date inputs to datetime formats
+        # Convert string date inputs to datetime formats
         # Set to none if not convertible
         # Supports only two formats '%Y-%m-%d' postgras native and
         # '%m/%d/%Y' US local
@@ -131,7 +138,7 @@ class DataFactory:
         return emit
 
     def valid_parm_rang(self, dfrom, dto, pagesize, pmax):
-        # check the parameters are invalid ranges
+        # Check the parameters are invalid ranges
         # And reset values that are blank to defaults
         valid = False
         emit_dfrom, emit_dto = (None, None)
@@ -149,54 +156,58 @@ class DataFactory:
         return (valid, emit_dfrom, emit_dto, pagesize)
 
     def listings_getter(self, rid=None, dfrom=None, dto=None, pagesize=None):
-        # TODO verify parameters in valid range
         emsg = "Bad Request"
         if rid:
-            sql_string = "SELECT * FROM listings WHERE id = {};".format(rid)
-            data = self.sql_execute(sql_string, True)
+            # Set up sql_str and sql_data
+            sql_string = "SELECT * FROM listings WHERE id = %s;"
+            data = list(self.sql_execute(sql_string, [rid], True))
         else:
             # dfrom must exist and be <= to now
             pmax = self._df_config["pg_config"]["pagesize_max"]
             (valid, dfrom, dto, pagesize) = self.valid_parm_rang(dfrom, dto, pagesize, pmax)
             if valid:
-                # exiqut (dfrom, dto, pagesize)
-                sql_string = "SELECT * FROM listings "
-                sql_string += "WHERE date_posted >= '{}' and date_posted <= '{}' "
-                sql_string += "ORDER BY date_posted ASC LIMIT {};"
-                sql_string = sql_string.format(dfrom, dto, pagesize)
-                print (sql_string)
-                data = self.sql_execute(sql_string, True, fetchall=True)
-                for row in data:
-                    row["date_posted"] = row["date_posted"].__str__()
-                    row["date_created"] = row["date_created"].__str__()
+                # Set up sql_str and sql_data
+                sql_str = "SELECT * FROM listings "
+                sql_str += "WHERE date_posted >= %s and date_posted <= %s "
+                sql_str += "ORDER BY date_posted ASC LIMIT %s;"
+                sql_data = [dfrom, dto, pagesize]
+                # print (sql_string)
+                data = self.sql_execute(sql_str, sql_data, True, fetchall=True)                
             else:
                 data = emsg
         return data
+
+    def listings_create(self):
+        with open(self._sql_create_path, "r") as sql_statment:
+            sql_str = ""
+            for sql_ln in sql_statment:
+                sql_str += sql_ln
+        return sql_str
+    #self.sql_execute(sql_str, None, False)
 
     def get_data_factory_conf(self, file_name):
         with open(file_name) as data_file:
             dict_from_json = json.load(data_file)
         return dict_from_json
 
+
 #dataFactory = DataFactory()
 
-
-# data = {"date_posted": '01/12/2018 14:54',
-#         "listing_title": "some title",
+# item = {"date": '02/12/2017 12:00',
+#         "title": "some'o title",
 #         "price": "6.66",
-#         "money": "some title",
+#         "beds": "3",
+#         "size": "1270",
+#         "baths": "1",
 #         "latitude": "78.87",
 #         "longitude": "7.87",
-#         "address": "some address",
-#         "desciption": "some desciption",
+#         "content": "some desciption",
 #         "link": "some url",
-#         "listing_id": "some listing_id"}
+#         "craigId": "1666976"}
 
-# #dataFactory.listings_setter(data)
-# lrows = dataFactory.listings_getter(rid=None,dfrom='01/23/2016', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
-
-# print(json.dumps(lrows))
-
-# # print("dt_str_2_dt:",dataFactory.dt_str_2_dt('01/23/20c16'))
-# # print("valid_dfrom:",dataFactory.valid_dfrom('01/23/20c16'))
-# # print("valid_parm_rang:",dataFactory.valid_parm_rang('01/23/20c16', '12/23/2017', 4, 23))
+# dataFactory.listings_setter(item)
+#lrows = dataFactory.listings_getter(rid=None,dfrom='2018-02-10', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
+# lrows = dataFactory.listings_getter(rid=719,dfrom=None, dto=None, pagesize=None)
+# print("json.dumps",json.dumps(lrows))
+# SELECT * FROM listings WHERE date_posted >= '2018-02-09 14:00:00' and date_posted <= '2018-02-10 00:00:00' ORDER BY date_posted ASC LIMIT 1000;
+#print(dataFactory.listings_create())
