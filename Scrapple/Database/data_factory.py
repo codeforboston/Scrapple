@@ -9,8 +9,8 @@ import psycopg2
 
 class DataFactory:
     def __init__(self):
-        self._df_app_path = "Database/"
         #self._df_app_path = ""
+        self._df_app_path = "Database/"
         self._sql_create_path = self._df_app_path + "create_listings.sql"
         self._df_config_path = self._df_app_path + "data_factory_config.json"
         self._df_config = self.get_data_factory_conf(self._df_config_path)
@@ -28,19 +28,15 @@ class DataFactory:
             self.db_conn.close()
 
     def postgres_connect(self, conn_defaults):
+        # Setup a connect to the postgres database
         print("Try to connect to postgres db")
-        # Connect to the postgres database
         # Define our connection string
-        conn_string = os.environ.get("POSTGRES_URI")
-
+        # Try to get a postgres uri parameters from os environ variables
+        conn_string = os.environ.get("POSTGRES_URI")        
         if not conn_string:
-            conn_defaults.setdefault("password", conn_defaults.get("pw"))
-            conn_string = " ".join(
-                k + "=" + conn_defaults[k]
-                for k in ("host", "port", "dbname", "user", "password")
-            )
-        #print("Connecting to database: '" + conn_string + "")
-        # Get a connection
+            # get a postgres uri parameters from conn_defaults
+            conn_string = conn_defaults["postgres_uri"]
+        # Try to get a db connection
         try:
             db_conn = psycopg2.connect(conn_string)
         except psycopg2.Error as e:
@@ -55,11 +51,7 @@ class DataFactory:
         return drow
 
     def format_row_data(self, rows, colnames):
-        lrow = []
-        for row in rows:
-           lrow.append(self.format_a_row(row, colnames))
-        return lrow
-        #return (self.format_a_row(row, colnames)) for row in rows)
+        return [self.format_a_row(row, colnames) for row in rows]
 
     def sql_execute(self, sql_string, sql_data, fetch, fetchall=None):        
         emit = None

@@ -1,1 +1,1 @@
-{"pg_config": {"host": "localhost","port": "5432", "user": "postgres","pw": "UBU;db","dbname": "clsp","pagesize_max": 1000}}
+{"pg_config": {"postgres_uri":"host=localhost port=5432 dbname=clsp user=clsp password=UBU;db", "pagesize_max": 1000}}
