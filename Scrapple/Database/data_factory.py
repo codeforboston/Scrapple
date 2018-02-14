@@ -28,7 +28,7 @@ class DataFactory:
             self.db_conn.close()
 
     def postgres_connect(self, conn_defaults):
-        #print("Try to connect to postgres db")
+        print("Try to connect to postgres db")
         # Connect to the postgres database
         # Define our connection string
         conn_string = os.environ.get("POSTGRES_URI")
@@ -39,7 +39,7 @@ class DataFactory:
                 k + "=" + conn_defaults[k]
                 for k in ("host", "port", "dbname", "user", "password")
             )
-        #print("Connecting to database: " + conn_string)
+        #print("Connecting to database: '" + conn_string + "")
         # Get a connection
         try:
             db_conn = psycopg2.connect(conn_string)
@@ -55,27 +55,35 @@ class DataFactory:
         return drow
 
     def format_row_data(self, rows, colnames):
-        return (self.format_a_row(row, colnames) for row in rows)
+        lrow = []
+        for row in rows:
+           lrow.append(self.format_a_row(row, colnames))
+        return lrow
+        #return (self.format_a_row(row, colnames)) for row in rows)
 
     def sql_execute(self, sql_string, sql_data, fetch, fetchall=None):        
+        emit = None
         # Open a connection
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         # Open a cursor to perform database operations
         cur = self.db_conn.cursor()
-        # Psycopg sql execute
-        cur.execute(sql_string, sql_data)
-        colnames = [desc[0] for desc in cur.description]        
-        if fetch:
-            if fetchall:
-                rows = cur.fetchall()
-                emit = self.format_row_data(rows, colnames)
+        #sql execute
+        try:
+            cur.execute(sql_string, sql_data)
+        except ValueError:
+            print(ValueError)
+        else:      
+            if fetch:
+                colnames = [desc[0] for desc in cur.description]  
+                if fetchall:
+                    rows = cur.fetchall()
+                    emit = self.format_row_data(rows, colnames)
+                else:
+                    row = cur.fetchone()                    
+                    emit = self.format_a_row(row, colnames)
             else:
-                row = cur.fetchone()
-                emit = self.format_a_row(row, colnames)
-        else:
-            emit = None
-            # Make the changes to the database persistent
-            self.db_conn.commit()
+                # Make the changes to the database persistent
+                self.db_conn.commit()
         # Close communication with the database
         cur.close()
         self.db_conn.close()
@@ -160,7 +168,7 @@ class DataFactory:
         if rid:
             # Set up sql_str and sql_data
             sql_string = "SELECT * FROM listings WHERE id = %s;"
-            data = list(self.sql_execute(sql_string, [rid], True))
+            data = self.sql_execute(sql_string, [rid], True)
         else:
             # dfrom must exist and be <= to now
             pmax = self._df_config["pg_config"]["pagesize_max"]
@@ -171,8 +179,8 @@ class DataFactory:
                 sql_str += "WHERE date_posted >= %s and date_posted <= %s "
                 sql_str += "ORDER BY date_posted ASC LIMIT %s;"
                 sql_data = [dfrom, dto, pagesize]
-                # print (sql_string)
-                data = self.sql_execute(sql_str, sql_data, True, fetchall=True)                
+                #print (sql_str, sql_data)
+                data = self.sql_execute(sql_str, sql_data, True, fetchall=True)
             else:
                 data = emsg
         return data
@@ -182,8 +190,7 @@ class DataFactory:
             sql_str = ""
             for sql_ln in sql_statment:
                 sql_str += sql_ln
-        return sql_str
-    #self.sql_execute(sql_str, None, False)
+        self.sql_execute(sql_str, None, False)
 
     def get_data_factory_conf(self, file_name):
         with open(file_name) as data_file:
@@ -191,9 +198,10 @@ class DataFactory:
         return dict_from_json
 
 
-#dataFactory = DataFactory()
 
-# item = {"date": '02/12/2017 12:00',
+dataFactory = DataFactory()
+
+# item = {"date": '02/01/2018 12:00',
 #         "title": "some'o title",
 #         "price": "6.66",
 #         "beds": "3",
@@ -206,8 +214,9 @@ class DataFactory:
 #         "craigId": "1666976"}
 
 # dataFactory.listings_setter(item)
+
 #lrows = dataFactory.listings_getter(rid=None,dfrom='2018-02-10', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
-# lrows = dataFactory.listings_getter(rid=719,dfrom=None, dto=None, pagesize=None)
-# print("json.dumps",json.dumps(lrows))
+#lrows = dataFactory.listings_getter(rid=719,dfrom=None, dto=None, pagesize=None)
+#print("json.dumps",json.dumps(lrows))
 # SELECT * FROM listings WHERE date_posted >= '2018-02-09 14:00:00' and date_posted <= '2018-02-10 00:00:00' ORDER BY date_posted ASC LIMIT 1000;
-#print(dataFactory.listings_create())
+#dataFactory.listings_create()
