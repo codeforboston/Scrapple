@@ -191,7 +191,7 @@ class DataFactory:
 
 
 
-dataFactory = DataFactory()
+#dataFactory = DataFactory()
 
 # item = {"date": '02/01/2018 12:00',
 #         "title": "some'o title",
