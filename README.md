@@ -32,15 +32,23 @@
   individually.
 
 ## Database initialization
+  
+  Scrapple is intended to use a Postgresql database the connection parameters must set by one of two methods, ether set up a environment parameter POSTGRES_URI witch is of the form `"host=host port=9999 dbname=bd_name user=user_name password=secret_pw"`.
+  The parameter may also be set in data_factory_config.json by using the postgres_uri value. POSTGRES_URI tacks precedents over postgres_uri if both are defined.
 
-  To perform initial setup on the database, you need to execute the commands in
+  To perform initial setup on the database, you need to execute the commands in Scrapple/
+  `python3 create_listings.py`
+
+  or alternatively
+
+  You may execute the commands in
   `Scrapple/Database/create_listings.sql`. You can use `psql`. For instance:
   
   `psql <conn_str> -f Scrapple/Database/create_listings.sql`
 
   Where `<conn_str>` is any way of specifying the location, database, and
   credentials to use: URI (`postgresql://...`), flags (`--user`, etc.), param
-  lists (`"host=localhost user=..."`).
+  lists (`"host=localhost port=5432 dbname=clsp user=clsp password=secret_pw"`) substituted your values for all.
   
 ## Start
 
@@ -59,7 +67,7 @@
 
 # Data API 
 
-  To retrieve listings between a given date range
+  To retrieve listings between a given date range use
 
   http://&lt;host&gt;:5555/listings/get?dfrom=<str_from>&dto=<str_dto>&pagesize=&lt;pagesize>
 
