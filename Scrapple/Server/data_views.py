@@ -35,8 +35,8 @@ def start_spider_sch():
     if scraper_name:
         scrapple.start_spider_sch(scraper_name)
         #scrapple.run_spiders()
-        print("starting scraper " + scraper_name)
-        return "success"
+        print("start_spider_sch>Try to start scrapy schedule for " + scraper_name)
+        return "success?"
     else:
         abort(Response("Missing parameter: scraper", status=401))
 
@@ -45,8 +45,8 @@ def start_spider_sch():
 def stop_spider_sch():
     scraper_name = request.args.get('scraper')
     if scraper_name:
+        print("stop_spider_sch> Try to stop scraper " + scraper_name)
         scrapple.stop_spider_sch(scraper_name)
-        print("stop scraper " + scraper_name)
-        return "success"
+        return "success?"
     else:
         abort(Response("Missing parameter: scraper", status=401))
