@@ -1,5 +1,4 @@
 # data_manager_schedulable.py
-#import scrapy
 from multiprocessing import Process, Queue
 from twisted.internet import reactor
 from scrapy.crawler import CrawlerRunner
