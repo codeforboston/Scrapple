@@ -8,19 +8,19 @@ class Scrapple:
 
     def start_spider_sch(self, strScraperName):
         print("start_spider_sch> Starting " + strScraperName)
-        data_manager_schedulable.dataManager.start_spider_sch(strScraperName)
+        response = data_manager_schedulable.dataManager.start_spider_sch(strScraperName)
         self.__scrapers[strScraperName] = True
+        return response
 
     def stop_spider_sch(self, strScraperName):
         if strScraperName in self.__scrapers:
             print("Item is running. Stopping " + strScraperName)
-            data_manager_schedulable.dataManager.stop_spider_sch(strScraperName)
+            response = data_manager_schedulable.dataManager.stop_spider_sch(strScraperName)
             del(self.__scrapers[strScraperName])
         else :
-            print("stop_spider_sch> ",strScraperName + " is not current running")
+            response = "stop_spider_sch> " + strScraperName + " is not current running"
+        return response
 
-    # def run_spiders(self):
-    #     data_manager_schedulable.dataManager.run_spiders()
 
 
 scrapple = Scrapple()

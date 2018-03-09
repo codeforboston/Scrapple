@@ -31,22 +31,23 @@ def listings_handler():
 
 @app.route('/start_spider_sch', methods=["POST"])
 def start_spider_sch():
+    status_msg = "no msg"
     scraper_name = request.args.get('scraper')
     if scraper_name:
-        scrapple.start_spider_sch(scraper_name)
-        #scrapple.run_spiders()
         print("start_spider_sch>Try to start scrapy schedule for " + scraper_name)
-        return "success?"
+        status_msg = scrapple.start_spider_sch(scraper_name)
+        return status_msg
     else:
         abort(Response("Missing parameter: scraper", status=401))
 
 
 @app.route('/stop_spider_sch', methods=["POST"])
 def stop_spider_sch():
+    status_msg = "no msg"
     scraper_name = request.args.get('scraper')
     if scraper_name:
         print("stop_spider_sch> Try to stop scraper " + scraper_name)
-        scrapple.stop_spider_sch(scraper_name)
-        return "success?"
+        status_msg = scrapple.stop_spider_sch(scraper_name)
+        return status_msg
     else:
         abort(Response("Missing parameter: scraper", status=401))

@@ -12,7 +12,7 @@ import schedule
 class DataManager:
     def __init__(self):
         # [spyder_obj] is the name of the object that contains a Scrapy spider
-        # [schedule_obj] contains a schedule schedule object see https://schedule.readthedocs.io/en/stable/
+        # [schedule_obj] contains a schedule object see https://schedule.readthedocs.io/en/stable/
         self.__spiderMap = {"craigslist":
                             {"spyder_obj": craig_spyder.MySpider,
                              "schedule_title": "schedule.every(10).minutes.do(self.dummy_scrapy_job)",
@@ -50,6 +50,7 @@ class DataManager:
             print(result)
     
     def start_spider_sch(self, strSpiderName):
+        emit_status ="No info"
         if strSpiderName not in self.__activeSpiders:
             print("start_spider_sch> Added spider schedule for " + strSpiderName)
             self.__spiderMap[strSpiderName]["sch_que"] = Queue()
@@ -60,17 +61,21 @@ class DataManager:
                                         args=(self.__spiderMap[strSpiderName]["sch_que"], scheduled_job))
             self.__spiderMap[strSpiderName]["sch_proc"].start()
             self.__spiderMap[strSpiderName]["sch_que"].put("START Scrapy schedule")
-            print("start_spider_sch> START Scrapy schedule for", strSpiderName)
+            emit_status = "start_spider_sch> START Scrapy schedule for " + strSpiderName
         else:
-            print(strSpiderName, "alrede scheduled, stop first") # is this nesasry?
+            emit_status = "start_spider_sch> " + strSpiderName + " is alrede scheduled, stop to reschedule"
+        print(emit_status)
+        return emit_status
+
 
     def stop_spider_sch(self, strSpiderName): 
+        emit_status ="No info"
         print("stop_spider_sch> activeSpiders ")       
         if strSpiderName in self.__activeSpiders:
             print("stop_spider_sch> stoping schedule for ",strSpiderName)
             # this tells schedule_worker to stop running
             self.__spiderMap[strSpiderName]["sch_que"].put("STOP")
-            # the following joins up the threads of the terminating process 
+            # the following joins up the threads of the terminating process and queue
             self.__spiderMap[strSpiderName]["sch_que"].close()
             self.__spiderMap[strSpiderName]["sch_que"].join_thread()
             self.__spiderMap[strSpiderName]["sch_proc"].join()
@@ -78,9 +83,11 @@ class DataManager:
             del(self.__spiderMap[strSpiderName]["sch_proc"])
             del(self.__activeSpiders[strSpiderName])
             # everything should now be cleaned out 
-            print(strSpiderName, " schedule removed")
+            emit_status =  strSpiderName + " schedule removed"
         else:
-            print("stop_spider_sch> No schedule active for ", strSpiderName)
+            emit_status = "stop_spider_sch> No schedule active for " + strSpiderName
+        print(emit_status)
+        return emit_status
 
     def new_item_recieved(self, item):
         dataFactory.listings_setter(item)
