@@ -31,6 +31,10 @@ MANIFEST
 *.manifest
 *.spec
 
+# Sublime Text fil
+.sublime-project
+.sublime-workspace
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
@@ -102,3 +106,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+*.sublime-project
+
+*.sublime-workspace

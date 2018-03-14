@@ -1,23 +1,26 @@
-from . import data_manager 
+from . import data_manager_schedulable 
 
 class Scrapple:
-    __scrapers = set()
+    __scrapers = {}
 
     def intialize(self):
-        print("The scrapple has been initialized")
+        print("The restartable scrapple has been initialized")
 
-    def start_scraper(self, strScraperName):
-        print("Starting " + strScraperName)
-        data_manager.dataManager.start_spider(strScraperName)
+    def start_spider_sch(self, strScraperName):
+        print("start_spider_sch> Starting " + strScraperName)
+        response = data_manager_schedulable.dataManager.start_spider_sch(strScraperName)
+        self.__scrapers[strScraperName] = True
+        return response
 
-    def stop_scraper(self, strScraperName):
+    def stop_spider_sch(self, strScraperName):
         if strScraperName in self.__scrapers:
             print("Item is running. Stopping " + strScraperName)
+            response = data_manager_schedulable.dataManager.stop_spider_sch(strScraperName)
+            del(self.__scrapers[strScraperName])
         else :
-            print(strScraperName + " is not current running")
+            response = "stop_spider_sch> " + strScraperName + " is not current running"
+        return response
 
-    def run_spiders(self):
-        data_manager.dataManager.run_spiders()
 
 
 scrapple = Scrapple()
