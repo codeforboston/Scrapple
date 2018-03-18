@@ -2,12 +2,14 @@ import scrapy
 from time import sleep
 from . import pipeline
 
-LISTINGS_PER_PAGE = 10
+LISTINGS_PER_PAGE = 1
 PAGES_TO_CRAWL = 1
+SPIDER_ID = 'craigslist'
 CITY_PREFIX = 'boston'
 
 
 class CraigslistItem(scrapy.Item):
+    spider_id = scrapy.Field()
     date = scrapy.Field()
     title = scrapy.Field()
     link = scrapy.Field()
@@ -38,6 +40,7 @@ class MySpider(scrapy.Spider):
         #loop through the postings
         for posting in postings:
             item = CraigslistItem()
+            item["spider_id"] = SPIDER_ID
             #grab craiglist apartment listing ID
             item["craigId"] = int(posting.xpath("@data-pid").extract()[0])
 

@@ -7,18 +7,44 @@ from . import pipeline
 from . import craig_spyder
 from Database import dataFactory
 import schedule
+from orderedset import OrderedSet
+
+
+CASHSIZE = 5000  # size of last spydered items to cash for deduplicating
+
+
+class CashSet:
+    # a fast cach for tracking resently seen items
+    def __init__(self, size=None):
+        if size is not None:
+            self.cashmap = OrderedSet(range(size))
+
+    def __len__(self):
+        return len(self.cashmap)
+
+    def __str__(self):
+        return str(self.cashmap)
+
+    def isduplicate(self, item):
+        return item in self.cashmap
+
+    def pop_add(self, new_item):
+        self.cashmap.pop(last=False)
+        self.cashmap.add(new_item)
 
 
 class DataManager:
     def __init__(self):
         # [spyder_obj] is the name of the object that contains a Scrapy spider
-        # [schedule_obj] contains a schedule object see https://schedule.readthedocs.io/en/stable/
+        # [schedule_obj] contains a schedule object see https://schedule.readthedocs.io/en/stable/        
+        self.cgl_cash = CashSet(10)
         self.__spiderMap = {"craigslist":
                             {"spyder_obj": craig_spyder.MySpider,
                              "schedule_title": "schedule.every(10).minutes.do(self.dummy_scrapy_job)",
-                             "schedule_obj": schedule.every(120).seconds.do(self.start_spider, strSpiderName="craigslist"),
+                             "schedule_obj": schedule.every(40).seconds.do(self.start_spider, strSpiderName="craigslist"),
                              "sch_proc": None,
-                             "sch_que": None}
+                             "sch_que": None,
+                             "keycash_obj": None}
                             }
         pipeline.newItemCallback.set_callback(self.new_item_recieved)
         print("Data Manager started")
@@ -26,8 +52,9 @@ class DataManager:
 
     @staticmethod
     def run_spider_in_thread(queue, spider):
-        # runs the troublesum CrawlerRunner which never properly stops
-        # killing this process will properly terminate CrawlerRunner
+        """ runs the troublesum CrawlerRunner which never properly stops
+        killing this process will properly terminate CrawlerRunner
+        """
         try:
             runner = CrawlerRunner(get_project_settings())
             deferred = runner.crawl(spider)
@@ -39,7 +66,7 @@ class DataManager:
 
     def start_spider(self, strSpiderName):
         # manages launching and cleaning up run_spider_in_thread in its own process
-        print("start_spider> ",strSpiderName)
+        print("start_spider> ", strSpiderName)
         q = Queue()
         spider = self.__spiderMap[strSpiderName]["spyder_obj"]
         thread = Process(target=self.run_spider_in_thread, args=(q, spider))
@@ -53,9 +80,11 @@ class DataManager:
         emit_status ="No info"
         if strSpiderName not in self.__activeSpiders:
             print("start_spider_sch> Added spider schedule for " + strSpiderName)
+            # setup needed items
             self.__spiderMap[strSpiderName]["sch_que"] = Queue()
             self.__activeSpiders[strSpiderName] = "STARTED"
             scheduled_job = self.__spiderMap[strSpiderName]["schedule_obj"]  
+            # substantiate Process obj store in map, this forks a new process 
             self.__spiderMap[strSpiderName]["sch_proc"] = \
                 Process(target=self.schedule_worker,
                                         args=(self.__spiderMap[strSpiderName]["sch_que"], scheduled_job))
@@ -68,9 +97,9 @@ class DataManager:
         return emit_status
 
 
-    def stop_spider_sch(self, strSpiderName): 
+    def stop_spider_sch(self, strSpiderName):
         emit_status ="No info"
-        print("stop_spider_sch> activeSpiders ")       
+        print("stop_spider_sch> activeSpiders ")
         if strSpiderName in self.__activeSpiders:
             print("stop_spider_sch> stoping schedule for ",strSpiderName)
             # this tells schedule_worker to stop running
@@ -90,11 +119,15 @@ class DataManager:
         return emit_status
 
     def new_item_recieved(self, item):
-        dataFactory.listings_setter(item)
-
-    # def dummy_scrapy_job(self):
-    #     print("I'm working at Scrapying...")
-
+        hash_key = item["craigId"]
+        spider_id = "craigslist" #item["spider_id"]
+        print("craigId",hash_key)
+        print("self.cgl_cash",self.cgl_cash)  # self.__spiderMap[spider_id]["keycash_obj"]
+        if not self.cgl_cash.isduplicate(hash_key):
+            dataFactory.listings_setter(item)
+            print("craigId inserted",hash_key)
+            self.cgl_cash.pop_add(hash_key)
+    
     def schedule_worker(self, sch_q, scheduled_job):
         # sets of predefined schedule using scheduled_job obj
         scheduled_job
