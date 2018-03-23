@@ -2,14 +2,17 @@ import scrapy
 from time import sleep
 from . import pipeline
 
-LISTINGS_PER_PAGE = 1
-PAGES_TO_CRAWL = 1
-SPIDER_ID = 'craigslist'
+LISTINGS_PER_PAGE = 1000
+PAGES_TO_CRAWL = 20
 CITY_PREFIX = 'boston'
+SPIDER_ID = 'cgl'
+CITY_ID = 'bos'
 
 
 class CraigslistItem(scrapy.Item):
-    spider_id = scrapy.Field()
+    rId = scrapy.Field()
+    spiderId = scrapy.Field()
+    cityId = scrapy.Field()
     date = scrapy.Field()
     title = scrapy.Field()
     link = scrapy.Field()
@@ -40,9 +43,12 @@ class MySpider(scrapy.Spider):
         #loop through the postings
         for posting in postings:
             item = CraigslistItem()
-            item["spider_id"] = SPIDER_ID
             #grab craiglist apartment listing ID
-            item["craigId"] = int(posting.xpath("@data-pid").extract()[0])
+            craig_Id = int(posting.xpath("@data-pid").extract()[0])
+            item["craigId"] = craig_Id
+            item["spiderId"] = SPIDER_ID
+            item["cityId"] = CITY_ID
+            item["rId"] = SPIDER_ID + '-' + CITY_ID + '-' + str(craig_Id)
 
             title_link = posting.xpath(".//a['result-title hdrlnk']")
             item["title"] = ' '.join(title_link.xpath("text()").extract()).strip().replace('\n', '')
@@ -79,6 +85,6 @@ class MySpider(scrapy.Spider):
 
         item["content"] = ' '.join(response.xpath("//section[@id='postingbody']")
                                    .xpath("text()").extract()).strip().replace('\n', '')
-								   
+                                   
 
         return item

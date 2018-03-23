@@ -14,12 +14,12 @@ class DataFactory:
         self._sql_create_path = self._df_app_path + "create_listings.sql"
         self._df_config_path = self._df_app_path + "data_factory_config.json"
         self._df_config = self.get_data_factory_conf(self._df_config_path)
-        self.item_names = ("date", "title", "link", "price",
-                                   "beds", "size", "craigId", "baths", "latitude",
-                                   "longitude", "content")
-        self.db_names = ("date_posted", "listing_title", "link", "price", 
-                                 "beds", "size", "listing_id", "baths", "latitude",
-                                 "longitude", "desciption")
+        self.item_names = ("rId", "spiderId", "cityId", "date", "title", "link", "price",
+                           "beds", "size", "craigId", "baths", "latitude",
+                           "longitude", "content")
+        self.db_names = ("id", "spider_id", "city_id", "date_posted", "listing_title",
+                         "link", "price", "beds", "size", "listing_id", "baths",
+                         "latitude", "longitude", "desciption")
         print("Data Factory started")
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
         if self.db_conn:
@@ -29,7 +29,7 @@ class DataFactory:
 
     def postgres_connect(self, conn_defaults):
         # Setup a connect to the postgres database
-        print("Try to connect to postgres db")
+        # print("Try to connect to postgres db")
         # Define our connection string
         # Try to get a postgres uri parameters from os environ variables
         conn_string = os.environ.get("POSTGRES_URI")        
@@ -89,8 +89,9 @@ class DataFactory:
             sql_data.append( row_item.get(k, None) )
         sql_str = "INSERT INTO listings (" + ", ".join( self.db_names ) + ") "
         sql_str += "VALUES (" + ", ".join ( ["%s"]*len(self.db_names) ) + ") " 
-        # print("Sql INSERT: " + sql_str)
-        # print("sql_data", sql_data,"\n")
+        sql_str += "ON CONFLICT DO NOTHING"
+        #print("Sql INSERT: " + sql_str)
+        #print("sql_data", sql_data,"\n")
         data = self.sql_execute(sql_str, sql_data, False)
 
     # validation helper methods
@@ -191,9 +192,13 @@ class DataFactory:
 
 
 
-#dataFactory = DataFactory()
+# dataFactory = DataFactory()
 
-# item = {"date": '02/01/2018 12:00',
+# item = {
+#         "rId" : "cgl-bos-1666978",
+#         "spiderId": "cgl", 
+#         "cityId": "bos",
+#         "date": '02/01/2018 12:00',
 #         "title": "some'o title",
 #         "price": "6.66",
 #         "beds": "3",
@@ -203,7 +208,7 @@ class DataFactory:
 #         "longitude": "7.87",
 #         "content": "some desciption",
 #         "link": "some url",
-#         "craigId": "1666976"}
+#         "craigId": "1666977"}
 
 # dataFactory.listings_setter(item)
 
