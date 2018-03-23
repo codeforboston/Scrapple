@@ -16,8 +16,8 @@ class DataManager:
         # [schedule_obj] contains a schedule object see https://schedule.readthedocs.io/en/stable/
         self.__spiderMap = {"craigslist":
                             {"spyder_obj": craig_spyder.MySpider,
-                             "schedule_title": "schedule.every(10).minutes.do(self.dummy_scrapy_job)",
-                             "schedule_obj": schedule.every(120).seconds.do(self.start_spider, strSpiderName="craigslist"),
+                             "schedule_title": "schedule.every(90).minutes.do(self.dummy_scrapy_job)",
+                             "schedule_obj": schedule.every(90).minutes.do(self.start_spider, strSpiderName="craigslist"),
                              "sch_proc": None,
                              "sch_que": None}
                             }
