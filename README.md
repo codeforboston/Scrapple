@@ -96,10 +96,10 @@
   Once a module has been activated it remains active until the environment which launches the flask server is closed. Once activated it will continue to scrape based on internal scraping schedule and parameters set in scraper module.
 
   Currently there is only one module craig_spyder.py and one schedule to start scraping using the following POST command.
-  http://&lt;host&gt;:5555/start_spider_sch?scraper=craigslist
+  <p>http://&lt;host&gt;:5555/start_spider_sch?scraper=craigslist</p>
 
   The schedule will run until the system is stopped. To stop it use the following endpoint.
-  http://&lt;host&gt;:5555/stop_spider_sch?scraper=craigslist
+  <p>http://&lt;host&gt;:5555/stop_spider_sch?scraper=craigslist</p>
 
   The schedule is set to 90 minutes as a default, comments in data_manager_schedulable.py explain how to edit the scheduling.
   
