@@ -7,6 +7,7 @@ from . import pipeline
 from . import craig_spyder
 from Database import dataFactory
 import schedule
+from time import gmtime, strftime
 
 
 class DataManager:
@@ -15,8 +16,8 @@ class DataManager:
         # [schedule_obj] contains a schedule object see https://schedule.readthedocs.io/en/stable/
         self.__spiderMap = {"craigslist":
                             {"spyder_obj": craig_spyder.MySpider,
-                             "schedule_title": "schedule.every(10).minutes.do(self.dummy_scrapy_job)",
-                             "schedule_obj": schedule.every(120).seconds.do(self.start_spider, strSpiderName="craigslist"),
+                             "schedule_title": "schedule.every(90).minutes.do(self.dummy_scrapy_job)",
+                             "schedule_obj": schedule.every(90).minutes.do(self.start_spider, strSpiderName="craigslist"),
                              "sch_proc": None,
                              "sch_que": None}
                             }
@@ -39,7 +40,8 @@ class DataManager:
 
     def start_spider(self, strSpiderName):
         # manages launching and cleaning up run_spider_in_thread in its own process
-        print("start_spider> ",strSpiderName)
+        srt_dt = "gmt:",strftime("%Y-%m-%d %H:%M", gmtime())
+        print("start_spider > ",strSpiderName, srt_dt)
         q = Queue()
         spider = self.__spiderMap[strSpiderName]["spyder_obj"]
         thread = Process(target=self.run_spider_in_thread, args=(q, spider))
@@ -99,12 +101,14 @@ class DataManager:
         # sets of predefined schedule using scheduled_job obj
         scheduled_job
         q_mesg = sch_q.get()
-        print ("schedule_worker> q_mesg:", q_mesg)
+        srt_dt = "gmt:",strftime("%Y-%m-%d %H:%M", gmtime())
+        print ("schedule_worker > q_mesg:", q_mesg, srt_dt)
         while q_mesg != "STOP":
             schedule.run_pending()
             if not sch_q.empty():
                 q_mesg = sch_q.get()
-                print ("schedule_worker> q_mesg:", q_mesg)
+                srt_dt = "gmt:",strftime("%Y-%m-%d %H:%M", gmtime())
+                print ("schedule_worker > q_mesg:", q_mesg, srt_dt)
 
 
 dataManager = DataManager()

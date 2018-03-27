@@ -1,8 +1,8 @@
--- create_listings.sql
-
 CREATE TABLE IF NOT EXISTS public.listings
 (
-	id serial NOT NULL,
+    id VARCHAR (20) COLLATE pg_catalog."default" NOT NULL,
+    spider_id VARCHAR (5) COLLATE pg_catalog."default" NOT NULL,
+    city_id VARCHAR (5) COLLATE pg_catalog."default" NOT NULL,
     date_posted TIMESTAMP NOT NULL,
     date_created TIMESTAMP NOT NULL DEFAULT now(),
     listing_title VARCHAR (255) COLLATE pg_catalog."default",

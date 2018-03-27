@@ -3,7 +3,8 @@ import scrapy
 class ItemCallback:
     def new_item(self, item):
 	    self.callback(item)
-	    print("Item gather got item")
+	    #print("Item gather got item")
+	    #print(item)
 
     def set_callback(self, callback):
 	    self.callback = callback

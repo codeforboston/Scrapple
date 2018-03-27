@@ -26,6 +26,8 @@
   - [Flask](http://flask.pocoo.org) - a lightweight web framework
   - [psycopg2](http://initd.org/psycopg/) - a Postgres adapter
   - [Scrapy](https://scrapy.org) - a framework for webscraping
+  - [schedule](https://schedule.readthedocs.io/en/stable/) - a framework for  job scheduling
+  
   
   You can install all of these dependencies by running 
   `pip install -r Scrapple/requirements.txt`, or by installing them 
@@ -85,16 +87,20 @@
 
   The endpoint returns a JSON in the form of a list of dictionaries, each dictionary describes a listing record.
 
-# Scraper operations 
+# Scraper Operations and Scheduling
 
   The scraper runs by executing Scraper modules which target specific websites.
 
   Currently there is only one scraper module which scrapes listings from craigslist
 
-  Once a module has been activated it remains active until the environment which launches the flask server is closed. Once activated it will continue to scrape based on internal scraping schedule and parameters set in scraper module.
+  Scraper module run on a periodic schedule there can be one schedule per scraper module. To control the activity of schedules two endpoints are provided one to activate a schedule and one to remove it and terminate scraping.
 
-  Currently there is only one module craig_spyder.py to start scraping using the following POST command.
-  http://&lt;host&gt;:5555/start_scraper?scraper=craigslist
+  Currently there is only one scraper craig_spyder.py and one schedule. To start scraping using the following POST command.
+  <p>http://&lt;host&gt;:5555/start_spider_sch?scraper=craigslist</p>
 
+  The schedule will run until the system is stopped. To stop it use the following POST command.
+  <p>http://&lt;host&gt;:5555/stop_spider_sch?scraper=craigslist</p>
+
+  The default schedule is set to 90 minutes, comments in data_manager_schedulable.py explain how to edit the scheduling.
   
-
+  The scheduling system is implemented in separate processes for each running scraper it is self-contained and runs within the Python flask server. If the flask server or the overall process running Python is terminated scheduling will halted. 
