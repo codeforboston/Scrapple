@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 import psycopg2
+from time import strftime
 
 
 # TODO support verbosity levels 1,2,3 suppress all print statements for 3
@@ -32,7 +33,7 @@ class DataFactory:
         # print("Try to connect to postgres db")
         # Define our connection string
         # Try to get a postgres uri parameters from os environ variables
-        conn_string = os.environ.get("POSTGRES_URI")        
+        conn_string = os.environ.get("POSTGRES_URI")
         if not conn_string:
             # get a postgres uri parameters from conn_defaults
             conn_string = conn_defaults["postgres_uri"]
@@ -53,7 +54,7 @@ class DataFactory:
     def format_row_data(self, rows, colnames):
         return [self.format_a_row(row, colnames) for row in rows]
 
-    def sql_execute(self, sql_string, sql_data, fetch, fetchall=None):        
+    def sql_execute(self, sql_string, sql_data, fetch, fetchall=None):
         emit = None
         # Open a connection
         self.db_conn = self.postgres_connect(self._df_config["pg_config"])
@@ -64,14 +65,14 @@ class DataFactory:
             cur.execute(sql_string, sql_data)
         except ValueError:
             print(ValueError)
-        else:      
+        else:
             if fetch:
-                colnames = [desc[0] for desc in cur.description]  
+                colnames = [desc[0] for desc in cur.description]
                 if fetchall:
                     rows = cur.fetchall()
                     emit = self.format_row_data(rows, colnames)
                 else:
-                    row = cur.fetchone()                    
+                    row = cur.fetchone()
                     emit = self.format_a_row(row, colnames)
             else:
                 # Make the changes to the database persistent
@@ -81,17 +82,18 @@ class DataFactory:
         self.db_conn.close()
         return emit
 
-    def listings_setter(self, row_item):        
+    def listings_setter(self, row_item):
         # Set up SQL insert string
         # Built from two sets expected item attributes and expected database fields
         sql_data = []
         for k in self.item_names:
-            sql_data.append( row_item.get(k, None) )
-        sql_str = "INSERT INTO listings (" + ", ".join( self.db_names ) + ") "
-        sql_str += "VALUES (" + ", ".join ( ["%s"]*len(self.db_names) ) + ") " 
+            sql_data.append(row_item.get(k, None))
+        sql_str = "INSERT INTO listings (" + ", ".join(self.db_names) + ") "
+        sql_str += "VALUES (" + ", ".join(["%s"]*len(self.db_names)) + ") "
         sql_str += "ON CONFLICT DO NOTHING"
         #print("Sql INSERT: " + sql_str)
-        #print("sql_data", sql_data,"\n")
+        # sql_data[3] = dt_local2utc(sql_data[3])
+        print("sql_data", sql_data[3], type(sql_data[3]), "\n")
         data = self.sql_execute(sql_str, sql_data, False)
 
     # validation helper methods
@@ -189,31 +191,3 @@ class DataFactory:
         with open(file_name) as data_file:
             dict_from_json = json.load(data_file)
         return dict_from_json
-
-
-
-# dataFactory = DataFactory()
-
-# item = {
-#         "rId" : "cgl-bos-1666978",
-#         "spiderId": "cgl", 
-#         "cityId": "bos",
-#         "date": '02/01/2018 12:00',
-#         "title": "some'o title",
-#         "price": "6.66",
-#         "beds": "3",
-#         "size": "1270",
-#         "baths": "1",
-#         "latitude": "78.87",
-#         "longitude": "7.87",
-#         "content": "some desciption",
-#         "link": "some url",
-#         "craigId": "1666977"}
-
-# dataFactory.listings_setter(item)
-
-#lrows = dataFactory.listings_getter(rid=None,dfrom='2018-02-10', dto=None, pagesize=None) # dfrom='01/23/2016'  rid=2
-#lrows = dataFactory.listings_getter(rid=719,dfrom=None, dto=None, pagesize=None)
-#print("json.dumps",json.dumps(lrows))
-# SELECT * FROM listings WHERE date_posted >= '2018-02-09 14:00:00' and date_posted <= '2018-02-10 00:00:00' ORDER BY date_posted ASC LIMIT 1000;
-#dataFactory.listings_create()

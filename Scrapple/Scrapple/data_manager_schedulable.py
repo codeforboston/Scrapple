@@ -16,8 +16,8 @@ class DataManager:
         # [schedule_obj] contains a schedule object see https://schedule.readthedocs.io/en/stable/
         self.__spiderMap = {"craigslist":
                             {"spyder_obj": craig_spyder.MySpider,
-                             "schedule_title": "schedule.every(90).minutes.do(self.dummy_scrapy_job)",
-                             "schedule_obj": schedule.every(90).minutes.do(self.start_spider, strSpiderName="craigslist"),
+                             "schedule_title": "schedule.every(30).minutes.do(self.dummy_scrapy_job)",
+                             "schedule_obj": schedule.every(30).minutes.do(self.start_spider, strSpiderName="craigslist"),
                              "sch_proc": None,
                              "sch_que": None}
                             }
@@ -40,8 +40,8 @@ class DataManager:
 
     def start_spider(self, strSpiderName):
         # manages launching and cleaning up run_spider_in_thread in its own process
-        srt_dt = "gmt:",strftime("%Y-%m-%d %H:%M", gmtime())
-        print("start_spider > ",strSpiderName, srt_dt)
+        srt_dt = "gmt:", strftime("%Y-%m-%d %H:%M", gmtime())
+        print("start_spider > ", strSpiderName, srt_dt)
         q = Queue()
         spider = self.__spiderMap[strSpiderName]["spyder_obj"]
         thread = Process(target=self.run_spider_in_thread, args=(q, spider))
@@ -50,17 +50,17 @@ class DataManager:
         thread.join()
         if result is not None:
             print(result)
-    
+
     def start_spider_sch(self, strSpiderName):
-        emit_status ="No info"
+        emit_status = "No info"
         if strSpiderName not in self.__activeSpiders:
             print("start_spider_sch> Added spider schedule for " + strSpiderName)
             self.__spiderMap[strSpiderName]["sch_que"] = Queue()
             self.__activeSpiders[strSpiderName] = "STARTED"
-            scheduled_job = self.__spiderMap[strSpiderName]["schedule_obj"]  
+            scheduled_job = self.__spiderMap[strSpiderName]["schedule_obj"]
             self.__spiderMap[strSpiderName]["sch_proc"] = \
                 Process(target=self.schedule_worker,
-                                        args=(self.__spiderMap[strSpiderName]["sch_que"], scheduled_job))
+                        args=(self.__spiderMap[strSpiderName]["sch_que"], scheduled_job))
             self.__spiderMap[strSpiderName]["sch_proc"].start()
             self.__spiderMap[strSpiderName]["sch_que"].put("START Scrapy schedule")
             emit_status = "start_spider_sch> START Scrapy schedule for " + strSpiderName
@@ -69,12 +69,11 @@ class DataManager:
         print(emit_status)
         return emit_status
 
-
-    def stop_spider_sch(self, strSpiderName): 
-        emit_status ="No info"
-        print("stop_spider_sch> activeSpiders ")       
+    def stop_spider_sch(self, strSpiderName):
+        emit_status = "No info"
+        print("stop_spider_sch> activeSpiders ")
         if strSpiderName in self.__activeSpiders:
-            print("stop_spider_sch> stoping schedule for ",strSpiderName)
+            print("stop_spider_sch> stoping schedule for ", strSpiderName)
             # this tells schedule_worker to stop running
             self.__spiderMap[strSpiderName]["sch_que"].put("STOP")
             # the following joins up the threads of the terminating process and queue
@@ -84,8 +83,8 @@ class DataManager:
             # now kill the sch_proc Process
             del(self.__spiderMap[strSpiderName]["sch_proc"])
             del(self.__activeSpiders[strSpiderName])
-            # everything should now be cleaned out 
-            emit_status =  strSpiderName + " schedule removed"
+            # everything should now be cleaned out
+            emit_status = strSpiderName + " schedule removed"
         else:
             emit_status = "stop_spider_sch> No schedule active for " + strSpiderName
         print(emit_status)
@@ -101,13 +100,13 @@ class DataManager:
         # sets of predefined schedule using scheduled_job obj
         scheduled_job
         q_mesg = sch_q.get()
-        srt_dt = "gmt:",strftime("%Y-%m-%d %H:%M", gmtime())
+        srt_dt = "gmt:", strftime("%Y-%m-%d %H:%M", gmtime())
         print ("schedule_worker > q_mesg:", q_mesg, srt_dt)
         while q_mesg != "STOP":
             schedule.run_pending()
             if not sch_q.empty():
                 q_mesg = sch_q.get()
-                srt_dt = "gmt:",strftime("%Y-%m-%d %H:%M", gmtime())
+                srt_dt = "gmt:", strftime("%Y-%m-%d %H:%M", gmtime())
                 print ("schedule_worker > q_mesg:", q_mesg, srt_dt)
 
 

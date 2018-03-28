@@ -8,7 +8,7 @@
   * A scraper that pulls Boston-area housing listings from Craigslist and stores
     them in a Postgres database.
     
-  * A webserver that can dispatch the scraper on demand and return the listings
+  * A webserver that can et up and terminate cheduled scraper execution and return the listings
     in JSON format, with optional filtering.
     
 # Setup
@@ -26,7 +26,7 @@
   - [Flask](http://flask.pocoo.org) - a lightweight web framework
   - [psycopg2](http://initd.org/psycopg/) - a Postgres adapter
   - [Scrapy](https://scrapy.org) - a framework for webscraping
-  - [schedule](https://schedule.readthedocs.io/en/stable/) - a framework for  job scheduling
+  - [schedule](https://schedule.readthedocs.io/en/stable/) - a framework for job scheduling
   
   
   You can install all of these dependencies by running 
@@ -87,15 +87,17 @@
 
   The endpoint returns a JSON in the form of a list of dictionaries, each dictionary describes a listing record.
 
+  Date formats are returned with timezone, set to Postgres timezone value (standard default is local timezone) 
+
 # Scraper Operations and Scheduling
 
-  The scraper runs by executing Scraper modules which target specific websites.
+ ## Scrapy Spiders
 
-  Currently there is only one scraper module which scrapes listings from craigslist
+  Scraping is supported by the scrapy framework which requires a spider to be written to parse a particular website. The data manager is designed to support running multiple Scrapy Spiders in separate schedules in parallel. However, currently, only one spider provided craig_spyder.py which scrapes craigslist website. Parameters specific to rental scraping are configurable was in craig_spyder.py.
 
-  Scraper module run on a periodic schedule there can be one schedule per scraper module. To control the activity of schedules two endpoints are provided one to activate a schedule and one to remove it and terminate scraping.
+  Scraper module runs on a periodic schedule there can be one schedule per Scrapy Spider. To control the activity of schedules two endpoints are provided one to activate a schedule and one to remove it and terminate scraping.
 
-  Currently there is only one scraper craig_spyder.py and one schedule. To start scraping using the following POST command.
+  To start scraping using the following POST command.
   <p>http://&lt;host&gt;:5555/start_spider_sch?scraper=craigslist</p>
 
   The schedule will run until the system is stopped. To stop it use the following POST command.
@@ -103,4 +105,8 @@
 
   The default schedule is set to 90 minutes, comments in data_manager_schedulable.py explain how to edit the scheduling.
   
-  The scheduling system is implemented in separate processes for each running scraper it is self-contained and runs within the Python flask server. If the flask server or the overall process running Python is terminated scheduling will halted. 
+## Scheduling Scope and Parallelism
+  The scheduling system is implemented in separate processes for each running Spider it is self-contained and runs within the Python flask server. If the flask server or the overall process running Python is terminated scheduling will be halted. 
+
+## Spiders Returned Date Formats
+  Date formats must be either generated in local time or provide a specific timezone

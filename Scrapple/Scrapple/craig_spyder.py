@@ -2,8 +2,8 @@ import scrapy
 from time import sleep
 from . import pipeline
 
-LISTINGS_PER_PAGE = 1000
-PAGES_TO_CRAWL = 20
+LISTINGS_PER_PAGE = 1
+PAGES_TO_CRAWL = 1
 CITY_PREFIX = 'boston'
 SPIDER_ID = 'cgl'
 CITY_ID = 'bos'
