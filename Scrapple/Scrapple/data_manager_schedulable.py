@@ -9,6 +9,10 @@ from Database import dataFactory
 import schedule
 from time import gmtime, strftime
 
+feld_list ="""id, spider_id, city_id, 
+              date_posted AT TIME ZONE 'UTC', date_created AT TIME ZONE 'UTC', 
+              listing_title, price, beds, size, baths, latitude, longitude, desciption, 
+              link, listing_id"""
 
 class DataManager:
     def __init__(self):
@@ -16,8 +20,8 @@ class DataManager:
         # [schedule_obj] contains a schedule object see https://schedule.readthedocs.io/en/stable/
         self.__spiderMap = {"craigslist":
                             {"spyder_obj": craig_spyder.MySpider,
-                             "schedule_title": "schedule.every(90).minutes.do(self.dummy_scrapy_job)",
-                             "schedule_obj": schedule.every(90).minutes.do(self.start_spider, strSpiderName="craigslist"),
+                             "schedule_title": "schedule.every(30).minutes.do(self.dummy_scrapy_job)",
+                             "schedule_obj": schedule.every(30).minutes.do(self.start_spider, strSpiderName="craigslist"),
                              "sch_proc": None,
                              "sch_que": None}
                             }

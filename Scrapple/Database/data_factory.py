@@ -3,6 +3,8 @@ import json
 import os
 from datetime import datetime
 import psycopg2
+from time import localtime, strftime # kill localtime
+
 
 
 # TODO support verbosity levels 1,2,3 suppress all print statements for 3
@@ -91,7 +93,8 @@ class DataFactory:
         sql_str += "VALUES (" + ", ".join ( ["%s"]*len(self.db_names) ) + ") " 
         sql_str += "ON CONFLICT DO NOTHING"
         #print("Sql INSERT: " + sql_str)
-        #print("sql_data", sql_data,"\n")
+        # sql_data[3] = dt_local2utc(sql_data[3])
+        print("sql_data", sql_data[3],type(sql_data[3]),"\n")
         data = self.sql_execute(sql_str, sql_data, False)
 
     # validation helper methods
