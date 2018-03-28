@@ -93,9 +93,9 @@
 
  ## Scrapy Spiders
 
-  Scraping is supported by the scrapie framework which requires a spider to be written to parse a particular website. The data manager is designed to support running multiple Scrapy Spiders in separate schedules in parallel. However, currently only one spider provided craig_spyder.py which scrapes craigslist website. parameters specific to rental scraping are configurable was in craig_spyder.py. 
+  Scraping is supported by the scrapy framework which requires a spider to be written to parse a particular website. The data manager is designed to support running multiple Scrapy Spiders in separate schedules in parallel. However, currently, only one spider provided craig_spyder.py which scrapes craigslist website. Parameters specific to rental scraping are configurable was in craig_spyder.py.
 
-  Scraper module run on a periodic schedule there can be one schedule per Scrapy Spider. To control the activity of schedules two endpoints are provided one to activate a schedule and one to remove it and terminate scraping.
+  Scraper module runs on a periodic schedule there can be one schedule per Scrapy Spider. To control the activity of schedules two endpoints are provided one to activate a schedule and one to remove it and terminate scraping.
 
   To start scraping using the following POST command.
   <p>http://&lt;host&gt;:5555/start_spider_sch?scraper=craigslist</p>
@@ -106,7 +106,7 @@
   The default schedule is set to 90 minutes, comments in data_manager_schedulable.py explain how to edit the scheduling.
   
 ## Scheduling Scope and Parallelism
-  The scheduling system is implemented in separate processes for each running Spider it is self-contained and runs within the Python flask server. If the flask server or the overall process running Python is terminated scheduling will halted. 
+  The scheduling system is implemented in separate processes for each running Spider it is self-contained and runs within the Python flask server. If the flask server or the overall process running Python is terminated scheduling will be halted. 
 
 ## Spiders Returned Date Formats
   Date formats must be either generated in local time or provide a specific timezone
