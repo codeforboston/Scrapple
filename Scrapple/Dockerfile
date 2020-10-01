@@ -1,7 +1,5 @@
 FROM python:3-onbuild
 
-RUN apt-get update && \
-    apt-get install -y postgresql && \
-    apt-get clean
+RUN apt-get update && install -y postgresql && clean
 
 CMD sh /app/docker_start.sh
